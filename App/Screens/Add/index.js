@@ -37,7 +37,6 @@ const AddButton = (props) => {
         inputRange: [0, 1],
         outputRange: [0, 1]
     });
-  
     return (
         <View style={{
             position: 'absolute',
@@ -61,7 +60,15 @@ const AddButton = (props) => {
                     <TouchableWithoutFeedback
                         onPress={() => {
                             toggleView()
-                            props.navigation.navigate('PostRoot')
+                            props.profileData !== null&&
+                            <>
+                                {
+                                (props.LoginUser.type == 0 && (props.profileData.first_name == '' || props.profileData.last_name == '' || props.profileData.country == ''|| props.profileData.email == ''|| props.profileData.timezone == '' || props.profileData.description == ''))?
+                                props.navigation.navigate('EditProfile')
+                                :
+                                props.navigation.navigate('PostRoot')
+                                }
+                            </>
                         }}
                         style={{
                             alignItems: 'center',
@@ -117,6 +124,7 @@ const AddButton = (props) => {
 const mapStateToProps = state => {
     return {
         LoginUser: state.LoginUser,
+        profileData: state.userProfile.profiledata,
     };
 };
   

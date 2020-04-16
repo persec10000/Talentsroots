@@ -212,6 +212,7 @@ const PackageTable = props => {
                         <View style={{ display: 'flex', justifyContent: 'center' }} >
                             <Image
                                 style={styles.securityImageStyle}
+                                resizeMode={'contain'}
                                 source={require('../../assets/images/secureText.png')}
                             />
                         </View> 

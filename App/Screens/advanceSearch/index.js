@@ -34,10 +34,10 @@ import {
 
 const AdvanceSearch = (props) => {
 
-  const [categoryId, setCategoryId] = useState('');
+  const [categoryId, setCategoryId] = useState('0');
   const [categoryLabel, setCategoryLabel] = useState('');
   const [categories, setCategories] = useState(props.categories);
-  const [subCategoryId, setSubCategoryId] = useState('');
+  const [subCategoryId, setSubCategoryId] = useState('0');
   const [subCategoryLabel, setSubCategoryLabel] = useState('');
   const [subCategories, setSubCategories] = useState([]);
   const [showFilter, setShowFilter] = useState(false);
@@ -118,18 +118,18 @@ const AdvanceSearch = (props) => {
     }
   }, [props.navigation.getParam('searchTerm', '')])
 
-  useEffect(() => {
-    if (props.navigation.getParam('c_id', '')) {
-      setCategoryId(props.navigation.getParam('c_id', ''));
-    }
-  }, [props.navigation.getParam('c_id', '')])
+  // useEffect(() => {
+  //   if (props.navigation.getParam('c_id', '')) {
+  //     setCategoryId(props.navigation.getParam('c_id', ''));
+  //   }
+  // }, [props.navigation.getParam('c_id', '')])
 
   useEffect(() => {
     if (props.navigation.getParam('sub_c_id', '')) {
       const subId = props.navigation.getParam('sub_c_id', '');
       if (subId) {
         props.navigation.closeDrawer();
-        setSubCategoryId(subId);
+        // setSubCategoryId(subId);
         getRootsByCategory(props.navigation.getParam('c_id', ''),subId);
       }
     }
@@ -140,7 +140,9 @@ const AdvanceSearch = (props) => {
       const category = categories.find(cat => {
         return cat.c_id === categoryId
       })
-      setSubCategories(category.sub_categories)
+      if (category){
+        setSubCategories(category.sub_categories)
+      }
     }
   }, [categoryId])
 
@@ -180,7 +182,8 @@ const AdvanceSearch = (props) => {
 
   const handleCountry = (value) => {
     let label = countries.find(cnt => cnt.cnt_id == value)
-    setCountry(label.cnt_code);
+    console.log("label===========",label)
+    setCountry(label.cnt_id);
   };
 
   const handleLanguage = (value) => {
@@ -189,18 +192,28 @@ const AdvanceSearch = (props) => {
   };
 
   const handleCategory = (value) => {
-    let label = categories.find(cat => cat.c_id === value);
-    setCategoryLabel(label.c_title)
-    setCategoryId(label.c_id)
-    setSubCategories(label.sub_categories)
+    if (value != 0){
+      let label = categories.find(cat => cat.c_id === value);
+      setCategoryLabel(label.c_title)
+      setCategoryId(label.c_id)
+      setSubCategories(label.sub_categories)
+    }
+    else{
+      setCategoryId(0)
+    }
   };
 
   const handleSubCategory = (value) => {
+    if (value != 0){
     let label = subCategories.find(cat => cat.c_id == value)
     setSubCategoryLabel(label.c_title)
     setSubCategoryId(label.c_id)
+    }
+    else{
+      setSubCategoryId(0)
+    }
   };
-
+  
   const renderFilterButton = (
     <TouchableWithoutFeedback
       onPress={() => setShowFilter(!showFilter)}
@@ -364,14 +377,22 @@ const AdvanceSearch = (props) => {
       />
       <View style={{ marginTop: 10, paddingHorizontal: 10 }}>
         {/* searchTerm */}
-        <TextInput
-          placeholder="Search Keyword"
-          placeholderTextColor="#748F9E"
-          style={styles.textInputStyles}
-          value={searchTerm}
-          onChangeText={text => setSearchTerm(text)}
-        />
+        <View style={{justifyContent:'center'}}>
+          <TextInput
+            placeholder="Search Keyword"
+            placeholderTextColor="#748F9E"
+            style={styles.textInputStyles}
+            value={searchTerm}
+            onChangeText={text => setSearchTerm(text)}
+          />
+          {searchTerm !== ''&&
+          <TouchableOpacity onPress={() => setSearchTerm('')} style={styles.textClose}>
+            <Icon name="remove" size={14} color="#748f9e"/>
+          </TouchableOpacity>
+          }
+        </View>
         {/* category */}
+        {console.log('subcatogoryId=======',subCategoryId)}
         <View style={styles.textContent}>
           <View style={styles.PickerContentStyle}>
             <Picker
@@ -380,12 +401,17 @@ const AdvanceSearch = (props) => {
               onValueChange={text =>
                 handleCategory(text)
               }
-            >
-              <Picker.Item key={0} label='Category' value={categoryId} />
+            > 
+              <Picker.Item key={0} label='Category' value={0} />
               {categories && categories.map((item, index) => (
-                <Picker.Item key={index} label={item.c_title} value={item.c_id} />
+                <Picker.Item key={index+1} label={item.c_title} value={item.c_id} />
               ))}
             </Picker>
+            {categoryId != 0 &&
+            <TouchableOpacity onPress={() => setCategoryId(0)} style={styles.categoryClose}>
+                <Icon name="remove" size={14} color="#748f9e"/>
+            </TouchableOpacity>
+            }
           </View>
         </View>
         {/* subcategory */}
@@ -396,11 +422,16 @@ const AdvanceSearch = (props) => {
               selectedValue={subCategoryId}
               onValueChange={text => handleSubCategory(text)}
             >
-              <Picker.Item key={0} label='Sub Category' value={subCategoryId} />
+              <Picker.Item key={0} label='Sub Category' value={0} />
               {subCategories && subCategories.map((item, index) => (
                 <Picker.Item key={index} label={item.c_title} value={item.c_id} />
               ))}
             </Picker>
+            {subCategoryId != 0 &&
+            <TouchableOpacity onPress={() => setSubCategoryId(0)} style={styles.categoryClose}>
+                <Icon name="remove" size={14} color="#748f9e"/>
+            </TouchableOpacity>
+            }
           </View>
         </View>
         {/* lavel */}
@@ -431,6 +462,11 @@ const AdvanceSearch = (props) => {
                 <Picker.Item key={index} label={item.cnt_name} value={item.cnt_id} />
               ))}
             </Picker>
+            {country !== '' &&
+            <TouchableOpacity onPress={() => setCountry('')} style={styles.categoryClose}>
+                <Icon name="remove" size={14} color="#748f9e"/>
+            </TouchableOpacity>
+            }
           </View>
         </View>
         {/* Language */}
@@ -446,25 +482,46 @@ const AdvanceSearch = (props) => {
                 <Picker.Item key={index} label={item.name} value={item.id} />
               ))}
             </Picker>
+            {language !== '' &&
+            <TouchableOpacity onPress={() => setLanguage('')} style={styles.categoryClose}>
+                <Icon name="remove" size={14} color="#748f9e"/>
+            </TouchableOpacity>
+            }
           </View>
         </View>
         {/* minprice and maxprice */}
         <View style={styles.rowTextInput}>
-          <TextInput
-            placeholder="Min Price"
-            placeholderTextColor="#748F9E"
-            style={[styles.textInputStyles, { flex: 0.5 }]}
-            onChangeText={text => setMinPrice(text)}
-          />
-          <TextInput
-            placeholder="Max Price"
-            placeholderTextColor="#748F9E"
-            onChangeText={text => setMinPrice(text)}
-            style={[
-              styles.textInputStyles,
-              { marginLeft: 10, flex: 0.5 },
-            ]}
-          />
+          <View>
+            <TextInput
+              placeholder="Min Price"
+              placeholderTextColor="#748F9E"
+              value={minPrice}
+              style={[styles.textInputStyles, { flex: 0.5 }]}
+              onChangeText={text => setMinPrice(text)}
+            />
+            {minPrice !== ''&&
+            <TouchableOpacity onPress={() => setMinPrice('')} style={styles.textClose}>
+              <Icon name="remove" size={14} color="#748f9e"/>
+            </TouchableOpacity>
+            }
+          </View>
+          <View>
+            <TextInput
+              placeholder="Max Price"
+              placeholderTextColor="#748F9E"
+              onChangeText={text => setMaxPrice(text)}
+              value={maxPrice}
+              style={[
+                styles.textInputStyles,
+                { marginLeft: 10, flex: 0.5 },
+              ]}
+            />
+            {maxPrice !== ''&&
+            <TouchableOpacity onPress={() => setMaxPrice('')} style={styles.textClose}>
+              <Icon name="remove" size={14} color="#748f9e"/>
+            </TouchableOpacity>
+            }
+          </View>
         </View>
         {/* online sellers */}
         <View style={styles.onlineTalent}>

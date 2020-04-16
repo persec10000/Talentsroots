@@ -84,7 +84,8 @@ const HomeStackNavigator = createStackNavigator({
   RootPage,
   PaymentScreen,
   MyRoots,
-  OrderDetails
+  OrderDetails,
+  ChatList
 }, {
   initialRouteName: 'Home',
   headerMode: 'none',
@@ -134,19 +135,19 @@ const TabNavigator = createBottomTabNavigator({
     }
   },
   ChatList: {
-    screen: ChatList ,
-    navigationOptions: {
-      tabBarLabel: <View />,
-      tabBarIcon: () => {
-        return <ChatIcon />;
-      }
-    }
+    screen: () => null ,
+    navigationOptions: ({navigation}) =>({
+      tabBarIcon: (props) => {
+        return <ChatIcon navigation = {navigation} />;
+      },
+      tabBarLabel: 'hide'
+    })
   }
 },
   {
     tabBarOptions: {
-      activeTintColor: '#10A2EF',
-      inactiveTintColor: '#AFB3BF',
+      activeTintColor: '#000',
+      inactiveTintColor: '#000',
       labelStyle: {
         fontSize: 14,
       },

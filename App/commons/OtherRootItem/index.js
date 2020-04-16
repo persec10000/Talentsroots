@@ -53,7 +53,7 @@ const RootsCard = props => {
                             >
                             {
                                 myRoots.map((item,index) => {
-                                    return <RootCardItem key={index} item={item} navigation={props.navigation} />
+                                    return <RootCardItem key={index} item={item} navigation={props.navigation} socket={props.socket}/>
                                 })
                             }
                             </ScrollView>

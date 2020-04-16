@@ -166,7 +166,7 @@ const UserProfileCard = props => {
 
       <View style={{margin:10,justifyContent:'center'}}>
           <Image 
-          resizeMode='center'
+          resizeMode={'center'}
           source={require('../../assets/images/secureText.png')}
           style={{height:70,width:'100%'}}
           />

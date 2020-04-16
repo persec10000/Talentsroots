@@ -88,8 +88,7 @@ export default StyleSheet.create({
     },
     securityImageStyle: {
         width: width - width / 3.5,
-        alignSelf: 'center',
-        resizeMode: 'contain'
+        alignSelf: 'center'
     },
     tableItemRightText: {
         fontSize: 13,

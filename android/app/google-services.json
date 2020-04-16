@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "1078990166609-hkp6iebtvqqpj4pvki4sqni85kq69lfm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.talentsroot",
+            "certificate_hash": "5ba900335eb76a1761668c67c2026ed429b4103c"
+          }
+        },
+        {
           "client_id": "1078990166609-8e3s0c2p5ip1si0gu6a463013kgqg2os.apps.googleusercontent.com",
           "client_type": 3
         }

@@ -38,11 +38,11 @@ const ProfileCard = props => {
           </Text>
         );
     }
-    
+   
     const handleContact = async (username) => {
         const response = await get_conversation(props.token, username);
         if (response.status === 1) {
-          props.navigation.navigate('ChatScreen', { 'user': response.data.opponent })
+          props.navigation.navigate('ChatScreen', { 'user': response.data.opponent, 'user_data': data })
         } else {
           Alert.alert('Error while contact.')
         }
@@ -68,7 +68,6 @@ const ProfileCard = props => {
       }, [])
 
     useEffect(() => {
-        console.log("hello time")
         setInterval(() => {
            setTime(moment().format("hh:mm A"))
         }, 6000)
@@ -265,7 +264,8 @@ const ProfileCard = props => {
                                flex:1,
                                marginTop: 15, 
                                justifyContent: 'flex-end'
-                            }} resizeMode={'contain'} 
+                            }} 
+                            resizeMode={'contain'} 
                              source={{uri : 'https://cdn.talentsroot.com/image/secure-icon.png'}}/>
                             <View style={{
                                 flex:4,

@@ -21,9 +21,10 @@ class ChatIcon extends React.Component {
     }
 
     componentDidMount = () => {
-        socket = SocketIOClient('https://socket.tribital.ml?user_id=' + this.props.id);
+        const socket = global.socket;
+        // socket = SocketIOClient('https://socket.talentsroot.com?user_id=' + this.props.id);
         socket.on('connect', () => {
-            console.log('connected at https://socket.tribital.ml?user_id=' + this.props.id)
+            // console.log('connected at https://socket.talentsroot.com?user_id=' + this.props.id)
         });
 
         socket.on('connect_error', (err) => { console.log("SOCKET CONNECTION ERR ----", err) })

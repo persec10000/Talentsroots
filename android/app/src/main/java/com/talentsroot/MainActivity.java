@@ -1,5 +1,7 @@
 package com.talentsroot;
 
+import android.content.Intent;
+
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.ReactRootView;
@@ -24,5 +26,10 @@ public class MainActivity extends ReactActivity {
          return new RNGestureHandlerEnabledRootView(MainActivity.this);
         }
       };
+    }
+    @Override
+    public void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
     }
 }

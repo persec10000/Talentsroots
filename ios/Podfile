@@ -36,6 +36,14 @@ target 'TalentsRoot' do
 
   pod 'RNFirebase', :path => '../node_modules/react-native-firebase'
 
+
+
+  pod 'SimpleAudio', :path => '../node_modules/react-native-simple-audio'
+
+  pod 'RNSound', :path => '../node_modules/react-native-sound'
+
+  pod 'react-native-timezone', :path => '../node_modules/react-native-timezone'
+
   target 'TalentsRootTests' do
     inherit! :search_paths
     # Pods for testing

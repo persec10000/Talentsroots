@@ -84,19 +84,19 @@ class MyShopping extends React.Component {
       return (
         <View style={styles.cardView}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', alignContent: 'flex-start', padding: 10 }}>
-            <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: 'https://cdn.talentsroot.com/upload_staging/profile/' + item.profile }} />
+            <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: 'https://cdn.talentsroot.com/upload/profile/' + item.profile }} />
             <View style={item.is_online == 1 ? styles.isOnline : styles.isOffline}></View>
             <Text>{item.name}</Text>
           </View>
           <View>
             <Text style={{ fontSize: 16, color: 'black', paddingLeft: 10 }}>
               {item.r_title}({item.o_order_id})
-                          </Text>
+            </Text>
           </View>
           <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
             <Text style={styles.headText}>
               Due On:
-                           </Text>
+            </Text>
             <Text style={styles.dataText}>
               {item.due_on}
             </Text>
@@ -104,7 +104,7 @@ class MyShopping extends React.Component {
           <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
             <Text style={styles.headText}>
               Amount:
-                            </Text>
+            </Text>
             <Text style={styles.dataText}>
               ${total}
             </Text>
@@ -115,19 +115,19 @@ class MyShopping extends React.Component {
       return (
         <View style={styles.cardView}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', alignContent: 'flex-start', padding: 10 }}>
-            <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: 'https://cdn.talentsroot.com/upload_staging/profile/' + item.profile }} />
+            <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: 'https://cdn.talentsroot.com/upload/profile/' + item.profile }} />
             <View style={item.is_online == 1 ? styles.isOnline : styles.isOffline}></View>
             <Text>{item.name}</Text>
           </View>
           <View>
             <Text style={{ fontSize: 16, color: 'black', paddingLeft: 10 }}>
               {item.r_title}({item.o_order_id})
-                          </Text>
+            </Text>
           </View>
           <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
             <Text style={styles.headText}>
               Sold on:
-                            </Text>
+            </Text>
             <Text style={styles.dataText}>
               {item.sold_on}
             </Text>
@@ -135,7 +135,7 @@ class MyShopping extends React.Component {
           <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
             <Text style={styles.headText}>
               Late:
-                           </Text>
+            </Text>
             <Text style={styles.dataText}>
               {item.late}
             </Text>
@@ -143,7 +143,7 @@ class MyShopping extends React.Component {
           <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
             <Text style={styles.headText}>
               Amount:
-                            </Text>
+            </Text>
             <Text style={styles.dataText}>
               ${total}
             </Text>
@@ -154,7 +154,7 @@ class MyShopping extends React.Component {
       return (
         <View style={styles.cardView}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', alignContent: 'flex-start', padding: 10 }}>
-            <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: 'https://cdn.talentsroot.com/upload_staging/profile/' + item.profile }} />
+            <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: 'https://cdn.talentsroot.com/upload/profile/' + item.profile }} />
             <View style={item.is_online == 1 ? styles.isOnline : styles.isOffline}></View>
             <Text>{item.name}</Text>
           </View>
@@ -166,7 +166,7 @@ class MyShopping extends React.Component {
           <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
             <Text style={styles.headText}>
               Delivered On:
-                           </Text>
+            </Text>
             <Text style={styles.dataText}>
               {item.delivered_on}
             </Text>
@@ -174,7 +174,7 @@ class MyShopping extends React.Component {
           <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
             <Text style={styles.headText}>
               Amount:
-                            </Text>
+            </Text>
             <Text style={styles.dataText}>
               ${total}
             </Text>
@@ -185,19 +185,19 @@ class MyShopping extends React.Component {
       return (
         <View style={styles.cardView}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', alignContent: 'flex-start', padding: 10 }}>
-            <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: 'https://cdn.talentsroot.com/upload_staging/profile/' + item.profile }} />
+            <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: 'https://cdn.talentsroot.com/upload/profile/' + item.profile }} />
             <View style={item.is_online == 1 ? styles.isOnline : styles.isOffline}></View>
             <Text>{item.name}</Text>
           </View>
           <View>
             <Text style={{ fontSize: 16, color: 'black', paddingLeft: 10 }}>
               {item.r_title}({item.o_order_id})
-                          </Text>
+            </Text>
           </View>
           <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
             <Text style={styles.headText}>
               Sold on:
-                            </Text>
+            </Text>
             <Text style={styles.dataText}>
               {item.sold_on}
             </Text>
@@ -205,7 +205,7 @@ class MyShopping extends React.Component {
           <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
             <Text style={styles.headText}>
               Completed On:
-                           </Text>
+            </Text>
             <Text style={styles.dataText}>
               {item.completed_on}
             </Text>
@@ -213,7 +213,7 @@ class MyShopping extends React.Component {
           <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
             <Text style={styles.headText}>
               Amount:
-                            </Text>
+            </Text>
             <Text style={styles.dataText}>
               ${total}
             </Text>
@@ -224,19 +224,19 @@ class MyShopping extends React.Component {
       return (
         <View style={styles.cardView}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', alignContent: 'flex-start', padding: 10 }}>
-            <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: 'https://cdn.talentsroot.com/upload_staging/profile/' + item.profile }} />
+            <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: 'https://cdn.talentsroot.com/upload/profile/' + item.profile }} />
             <View style={item.is_online == 1 ? styles.isOnline : styles.isOffline}></View>
             <Text>{item.name}</Text>
           </View>
           <View>
             <Text style={{ fontSize: 16, color: 'black', paddingLeft: 10 }}>
               {item.r_title}({item.o_order_id})
-                          </Text>
+            </Text>
           </View>
           <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
             <Text style={styles.headText}>
               Cancelled On:
-                           </Text>
+            </Text>
             <Text style={styles.dataText}>
               {item.cancelled_on}
             </Text>
@@ -244,7 +244,7 @@ class MyShopping extends React.Component {
           <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
             <Text style={styles.headText}>
               Amount:
-                            </Text>
+            </Text>
             <Text style={styles.dataText}>
               ${total}
             </Text>
@@ -322,7 +322,7 @@ class MyShopping extends React.Component {
                     <TouchableOpacity onPress={() => { this.props.navigation.navigate('OrderDetails', { orderDetails: item }) }}>
                       <View style={styles.cardView}>
                         <View style={{ flexDirection: 'row', alignItems: 'flex-start', alignContent: 'flex-start', padding: 10 }}>
-                          <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: 'https://cdn.talentsroot.com/upload_staging/profile/' + item.profile }} />
+                          <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: 'https://cdn.talentsroot.com/upload/profile/' + item.profile }} />
                           <View style={item.is_online == 1 ? styles.isOnline : styles.isOffline}></View>
                           <Text>{item.name}</Text>
                         </View>

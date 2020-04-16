@@ -16,7 +16,7 @@ export const my_reviews = async (token) => {
       return json;
     });
   }
-
+  
   export const awarded_reviews = async (token) => {
     return await fetch(config.awardedReviews,{
       method: "POST",

@@ -1,4 +1,4 @@
-import {ToastAndroid} from 'react-native';
+import {ToastAndroid, Alert} from 'react-native';
 import config from '../../config';
 
 export const profile_service = request => {
@@ -44,38 +44,49 @@ export const root_details = (token, id) => {
 };
 
 export const edit_profile = (request, token) => {
-  console.log('edit_profile',request.preferredLang, request.additionalLang,request.country);
+  console.log('edit_profile',request, token);
+  let prefferedLang = request.LanguageList.find(cat => cat.name == request.preferredLang);
+  let additionalLang = request.LanguageList.find(cat => cat.name == request.additionalLang);
+  let country = request.countryList.find(cat => cat.cnt_name == request.country);
+  let photo = {
+    uri: request.profileImage,
+    type: 'image/jpeg',
+    name: 'photo.jpg',
+  };
+  let bodyData = new FormData();
+  bodyData.append('first_name', request.firstname);
+  bodyData.append('last_name', request.lastname);
+  bodyData.append('email', request.email);
+  bodyData.append('preffered_language', request.prefferedLanguageId?request.prefferedLanguageId:prefferedLang.id);
+  bodyData.append('additional_language', request.additionalLanguageId?request.additionalLanguageId:additionalLang.id);
+  bodyData.append('type', request.type);
+  bodyData.append('description', request.profileDesc ? request.profileDesc : '');
+  bodyData.append('gender', 1);
+  bodyData.append('phone', request.phone?request.phone:'');
+  bodyData.append('country', country.cnt_code);
+  bodyData.append('timezone', request.timezone);
+  bodyData.append('email_notifications', 0);
+  bodyData.append('mobile_notifications', 0);
+  bodyData.append('category_notifications', 0);
+  bodyData.append('profile', photo);
+  bodyData.append('skills', request.tags.tagsArray.join());
   return fetch(config.editProfile, {
     method: 'POST',
     headers: {
       'api-key': 'B3vWg8qq4k2!9qePMh*U&Cu&tbPJ$Fywnk^5LYFUprx9BAetDk5',
-      'Content-Type': 'application/json',
+      // 'Content-Type': 'application/json',
+      'Content-type': 'multipart/form-data',
       'auth-token': token,
     },
-    body: JSON.stringify({
-      name: request.username,
-      first_name: request.firstname,
-      last_name: request.firstname,
-      preffered_language: request.prefferedLanguageId,
-      additional_language: request.additionalLanguageId,
-      // email: request.email,
-      type: 0,
-      description: request.profileDesc ? request.profileDesc : '',
-      gender: 1,
-      phone:request.phone?request.phone:'',
-      country: request.country,
-      timezone: request.timezone,
-      email_notifications: 0,
-      mobile_notifications: 0,
-      profile: request.profileImage,
-    }),
+    body: bodyData
   })
     .then(response => {
       console.log('profile updatesss', response);
       return response.json();
     })
     .then(json => {
-      ToastAndroid.show(json.message, ToastAndroid.SHORT);
+      Alert.alert(json.message)
+      // ToastAndroid.show(json.message, ToastAndroid.SHORT);
       console.log('profile update', json);
       return json;
     });

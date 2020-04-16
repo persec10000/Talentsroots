@@ -22,7 +22,7 @@ class GreetingScreen extends Component {
   componentDidMount = () => {
   };
   render() {
-    console.log('login user data',this.props.login)
+    console.log('login user data',this.props.profileData)
     return (
       <View style={styles.card}>
         <View style={styles.cardUpper}>
@@ -52,9 +52,18 @@ class GreetingScreen extends Component {
                 </TouchableOpacity>
               </>
               : <>
+              
                 <TouchableOpacity
                   onPress={() => {
-                    this.props.navigation.navigate('PostRoot');
+                    this.props.profileData !== null&&
+                      <>
+                        {
+                          (this.props.login.type == 0 && (this.props.profileData.first_name == '' || this.props.profileData.last_name == '' || this.props.profileData.country == ''|| this.props.profileData.email == ''|| this.props.profileData.timezone == '' || this.props.profileData.description == ''))?
+                          this.props.navigation.navigate('EditProfile')
+                          :
+                          this.props.navigation.navigate('PostRoot')
+                        }
+                      </>
                   }}
                   style={[
                     styles.helloCardButton,
@@ -78,7 +87,8 @@ class GreetingScreen extends Component {
 }
 const mapStateToProps = state => {
   return {
-    login: state.LoginUser
+    login: state.LoginUser,
+    profileData: state.userProfile.profiledata,
   };
 };
 const greeting = connect(

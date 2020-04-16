@@ -39,7 +39,7 @@ export default StyleSheet.create({
     borderStyle: 'dashed',
     borderColor: '#10A2EF',
     alignItems:'center',
-    justifyContent:'center'
+    // justifyContent:'center'
   },
   image:{
     height: 150,
@@ -102,7 +102,8 @@ export default StyleSheet.create({
     color:'white',
   },
   tagContainer:{
-    marginVertical:0
+    // marginVertical:0,
+    justifyContent:'center'
   },
   tag: {
     backgroundColor: '#fff'
@@ -110,4 +111,7 @@ export default StyleSheet.create({
   tagText: {
     color: 'black'
   },
+  wrapper : {
+    justifyContent:'center'
+  }
 });

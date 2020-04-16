@@ -69,7 +69,47 @@ export const sendMessage = (con_id, message, token) => {
       console.error("in send message",error);
     });
 }
-
+export const eventRead = (con_id, token) => {
+  return fetch(config.chat_eventread, {
+    method: 'POST',
+    headers: {
+      'api-key': 'B3vWg8qq4k2!9qePMh*U&Cu&tbPJ$Fywnk^5LYFUprx9BAetDk5',
+      'Content-Type': 'application/json',
+      'auth-token': token
+    },
+    body: JSON.stringify({
+      'conversation_id': con_id
+    })
+  }).then((response) => response.json())
+    .then((responseJson) => {
+      // console.log("positive res", responseJson)
+      return responseJson;
+    })
+    .catch((error) => {
+      console.error("in send message",error);
+    });
+}
+export const eventTyping = (con_id, token) => {
+  console.log("conversationId=============", con_id)
+  return fetch(config.chat_eventtyping, {
+    method: 'POST',
+    headers: {
+      'api-key': 'B3vWg8qq4k2!9qePMh*U&Cu&tbPJ$Fywnk^5LYFUprx9BAetDk5',
+      'Content-Type': 'application/json',
+      'auth-token': token
+    },
+    body: JSON.stringify({
+      'conversation_id': con_id
+    })
+  }).then((response) => response.json())
+    .then((responseJson) => {
+      console.log("eventreading res", responseJson)
+      return responseJson;
+    })
+    .catch((error) => {
+      console.error("in send message",error);
+    });
+}
 export const getChats = (con_id, token) => {
   console.log("token---------", token)
   console.log("in get chat", con_id, token);
@@ -87,7 +127,7 @@ export const getChats = (con_id, token) => {
     })
   }).then((response) => response.json())
     .then((responseJson) => {
-      // console.log(responseJson)
+      console.log("resposejson",responseJson)
       return responseJson;
     })
     .catch((error) => {
@@ -95,7 +135,7 @@ export const getChats = (con_id, token) => {
     });
 }
 
-export const loadMoreChat = (con_id, token) => {
+export const loadMoreChat = (con_id, token, offsetNum) => {
   return fetch(config.chat_list, {
     method: 'POST',
     headers: {
@@ -105,8 +145,7 @@ export const loadMoreChat = (con_id, token) => {
     },
     body: JSON.stringify({
       'conversation_id': con_id,
-      'offset': 15,
-      'limit': 15
+      'offset': offsetNum
     })
   }).then((response) => response.json())
     .then((responseJson) => {
@@ -118,13 +157,25 @@ export const loadMoreChat = (con_id, token) => {
     });
 }
 
-export const uploadFile = (fileOptions, con_id, waterMark, token) => {
+export const uploadFile = (fileOptions, con_id, waterMark, token, isvoice) => {
+    let fileName = fileOptions.split('/')
+    console.log("recording==============", fileOptions, fileName[fileName.length-1])
+    // return
     const formData = new FormData();
-    formData.append('files', {
-      'uri': fileOptions.uri,
-      'type': fileOptions.type,
-      'name': fileOptions.fileName
-    });
+    if (isvoice){
+      formData.append('files', {
+        'uri':  `file://${fileOptions}`,
+        'type': 'audio/wav',
+        'name': `${fileName[fileName.length-1]}`
+      });
+    }
+    else {
+      formData.append('files', {
+        'uri':  fileOptions.uri,
+        'type': fileOptions.type,
+        'name': fileOptions.fileName
+      });
+    }
     formData.append('conversation_id', con_id);
     formData.append('watermark', waterMark);
     console.log("form data", formData);
@@ -138,7 +189,7 @@ export const uploadFile = (fileOptions, con_id, waterMark, token) => {
       body: formData,
     }).then((response) => response.json())
       .then((responseJson) => {
-        // console.log("response +++",responseJson)
+        console.log("response +++",responseJson)
         return responseJson;
       })
       .catch((error) => {
@@ -273,6 +324,7 @@ export const withdrawOffer = (con_id, token, status) => {
     })
   }).then((response) => response.json())
     .then((responseJson) => {
+      console.log("withdraw=========",responseJson)
       return responseJson;
     })
     .catch((error) => { 

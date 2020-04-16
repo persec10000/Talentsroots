@@ -13,7 +13,7 @@ import {
 import { connect } from 'react-redux';
 
 import Header from '../../commons/header';
-import ReviewCard from '../../commons/reviewCard';
+// import ReviewCard from '../../commons/reviewCard';
 import DrawerWrapper from '../../commons/rightDrawerWrapper';
 import config from '../../config';
 import { my_reviews, awarded_reviews, pending_reviews } from '../../services/myReviews';

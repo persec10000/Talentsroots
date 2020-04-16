@@ -22,7 +22,11 @@ import { getUniqueId, getManufacturer } from 'react-native-device-info';
 import { LoginManager, AccessToken, GraphRequest, GraphRequestManager } from 'react-native-fbsdk';
 import * as RNLocalize from 'react-native-localize';
 import Modal from 'react-native-modal';
-import { Login, LoginWithFacebook } from './actions/actions';
+import {
+  GoogleSignin,
+  statusCodes,
+} from '@react-native-community/google-signin';
+import { Login, LoginWithFacebook, LoginWithGoogle } from './actions/actions';
 import config from '../../../config'
 import Icon from "react-native-vector-icons/FontAwesome";
 import {
@@ -37,7 +41,6 @@ import {
 
 const HEIGHT = Dimensions.get('window').height;
 const WIDTH = Dimensions.get('window').width;
-
 
 class LoginScreen extends React.Component {
 
@@ -138,7 +141,35 @@ class LoginScreen extends React.Component {
         alert(error)
       })
   }
-
+ 
+  googleLogin = async() => {
+    try {
+      const device_id = this.state.device_id
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+      await GoogleSignin.revokeAccess();
+      console.log('userInfo==', userInfo)
+      // this.setState({ userInfo: userInfo, loggedIn: true });
+      let user = userInfo.user;
+      this.props.callGoogleLogin(
+        user.id,
+        device_id,
+        this.state.tz,
+        user.email
+      )
+     // if 
+    } catch (error) {
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        // user cancelled the login flow
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        // operation (f.e. sign in) is in progress already
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        // play services not available or outdated
+      } else {
+        // some other error happened
+      }
+    }
+  }
   renderToaster = () => {
     this.setState({
       showToaster: false,
@@ -163,7 +194,18 @@ class LoginScreen extends React.Component {
       this.setState({ device_id: androidId });
     });
     console.disableYellowBox = true;
+    GoogleSignin.configure({
+      webClientId: '1078990166609-8e3s0c2p5ip1si0gu6a463013kgqg2os.apps.googleusercontent.com', 
+      offlineAccess: true, 
+      hostedDomain: '', 
+      forceConsentPrompt: true, 
+    });
     // let id = DeviceInfo.getUniqueID();
+    // const socket = this.props.screenProps;
+    // socket.on('connect', (value) => { 
+    //   console.log("SOCKET DISCONNECTIONNNNNNNNNNNNNNNNN ----------");
+    //   setTimeout(() => socket.disconnect(true), 5000);
+    // })
   };
 
   forgetPassword = async () => {
@@ -192,7 +234,6 @@ class LoginScreen extends React.Component {
     this.setState({ isModalVisible: !this.state.isModalVisible , forgetEmail:'' });
   };
   render() {
-    console.log('Login reducer', this.props.login);
     {
       this.props.login.loggedin && this.props.navigation.navigate('App');
     }
@@ -300,21 +341,34 @@ class LoginScreen extends React.Component {
         <View style={styles.underline} />
         <View style={{ flexDirection: 'row' , justifyContent: 'space-around' }}>
           <TouchableOpacity 
-            style={[styles.socialCard,{backgroundColor: 'white'}]}>
+            style={[styles.socialCard,{backgroundColor: 'white'}]}
+            onPress={()=>this.googleLogin()}>
+            {this.props.login.googlefetching ? 
+            <View style={{flex:1, alignItems:'center', justifyContent: 'center'}}>
+              <ActivityIndicator size="small" color="#4267b2" /> 
+            </View>
+            : 
+            <>
             <Image 
               style={styles.socialIcon} 
+              resizeMode={'contain'}
               source={require('../../../assets/icons/google.png')} />
             <Text 
              style={[styles.socialText,{color: '#7a7d85'}]} 
             >
               Continue with Google
             </Text>
+            </> 
+            }
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.socialCard,{backgroundColor : '#4267b2'}]}
             onPress={() => this.fbCheck()}>
             {this.props.login.fbfetching ? 
-              <ActivityIndicator size="small" color="#FFF" /> : 
+              <View style={{flex:1, alignItems:'center', justifyContent: 'center'}}>
+                <ActivityIndicator size="small" color="#FFF" /> 
+              </View>
+              :
               <>
               <Image 
                 style={styles.socialIcon} 
@@ -354,6 +408,9 @@ const mapDispatchToProps = dispatch => {
     },
     callFbLogin: (facebook_id, name, email, first_name, last_name, deviceId) => {
       dispatch(LoginWithFacebook(facebook_id, name, email, first_name, last_name, deviceId));
+    },
+    callGoogleLogin: (google_id, deviceId, tz, email) => {
+      dispatch(LoginWithGoogle(google_id, deviceId, tz, email));
     }
   };
 };
@@ -459,8 +516,7 @@ const styles = StyleSheet.create({
   },
   socialIcon: { 
     height : null,
-    flex : 1,
-    resizeMode:'contain'
+    flex : 1
   },
   socialText: {
     fontSize : moderateScale(11),

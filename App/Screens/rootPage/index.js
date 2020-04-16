@@ -114,7 +114,6 @@ const RootPage = (props) => {
 
   const getReviewDetails = async (token, id) => {
     const response = await my_reviews(token, id);
-    console.log("reviews -------------", response)
     if (response.status === 1) {
       setReviewDetails(response.data);
     }
@@ -126,12 +125,11 @@ const RootPage = (props) => {
       'type': type
     })
     const users_review_response = await user_reviews(token, requestData)
-    console.log('userreviews', users_review_response)
     if (users_review_response.status === 1) {
       setRatings(users_review_response.data)
     }
   }
-
+  
   const checkFavorite = async (token, rootId) => {
     const response = await check_favorite(token, rootId);
     if (response.status === 1) {
@@ -157,6 +155,7 @@ const RootPage = (props) => {
   useEffect(() => {
     if (props.navigation.getParam('user_id', '')) {
       const userId = props.navigation.getParam('user_id', '');
+      console.log("getuserid=============",userId)
       getUserProfile(props.token, userId)
     }
   }, [props.navigation.getParam('user_id', '')])
@@ -285,7 +284,7 @@ const RootPage = (props) => {
   const handleContact = async (username) => {
     const response = await get_conversation(props.token, username);
     if (response.status === 1) {
-      props.navigation.navigate('ChatScreen', { 'user': response.data.opponent })
+      props.navigation.navigate('ChatScreen', { 'user': response.data.opponent, 'user_data': userProfile })
     } else {
       Alert.alert('Error while contact.')
     }
@@ -510,19 +509,20 @@ const RootPage = (props) => {
           }
         </>
         {/*Reviews*/}
-        {/* { reviewDetails && userProfile && ratings && ratings.reviews.length > 0 ?
+        { reviewDetails && userProfile && ratings && ratings.reviews.length > 0 ?
           <>
             <ReviewCard
               navigation={props.navigation}
+              rootId={props.navigation.getParam('root_id', '')}
               myReviews={reviewDetails}
-              data={userProfile}
+              userProfile={userProfile}
               ratings={ratings}
             />
             <View style={{ height: 20 }} />
           </>
           :
           null
-        } */}
+        }
         {data.r_user_id != props.userId && <>{
           otherRootsDetails.length > 0 && userProfile ?
             <>
@@ -530,6 +530,7 @@ const RootPage = (props) => {
                 navigation={props.navigation}
                 myRoots={otherRootsDetails}
                 data={userProfile}
+                socket={props.screenProps}
               />
               <View style={{ height: 10 }} />
             </>

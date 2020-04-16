@@ -8,7 +8,7 @@ import App from './App';
 import { name as appName } from './app.json';
 import { Provider } from 'react-redux'
 import { store } from './App/reducers'
-
+import backgroundPush from './App/backgroundPush';
 const component = () => {
     return(
         <Provider store={store}>
@@ -18,6 +18,5 @@ const component = () => {
 
 }
 
-AppRegistry.registerComponent(appName, ()=>component 
-    
-);
+AppRegistry.registerComponent(appName, ()=>component);
+AppRegistry.registerHeadlessTask('RNFirebaseBackgroundMessage', () => backgroundPush);

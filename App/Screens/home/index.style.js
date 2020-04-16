@@ -6,6 +6,16 @@ export default StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 20,
   },
+  redbarStyle: {
+    backgroundColor: "#f8d7da", 
+    padding: 7, 
+    borderWidth: 1, 
+    borderColor: '#f8d7da'
+  },
+  redbartextStyle: {
+    textAlign: 'center',
+    color: '#721c24'
+  },
   container: {
     flex: 1,
     justifyContent: 'center',

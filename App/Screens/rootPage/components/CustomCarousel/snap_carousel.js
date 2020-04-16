@@ -82,6 +82,7 @@ const SnapCarousel = (props) => {
                  <Image
                   source={{ uri : item.rf_file_name }}
                   style={styles.backgroundImage}
+                  resizeMode={'contain'}
                 />
                 : null
               }

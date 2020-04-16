@@ -378,7 +378,7 @@ class Details extends React.Component {
                                                     <Text style={{ color: '#2ec09c', fontSize: 20 }}>${total}</Text>
                                                 </View>
                                                 <View style={{ flexDirection: 'row' }}>
-                                                    <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: 'https://cdn.talentsroot.com/upload_staging/profile/' + item.profile }} />
+                                                    <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: 'https://cdn.talentsroot.com/upload/profile/' + item.profile }} />
                                                     <View style={{ marginTop: 10, flexDirection: 'row' }}>
                                                         <Text style={{ color: '#748f9e', fontWeight: '900' }}>{this.props.navigation.state.params.from == "sales" ? "Buyer:" : "Seller:"} </Text>
                                                         <Text style={{ color: '#748f9e', fontWeight: '900' }}>{item.name ? item.name : this.state.t_name}</Text>
@@ -401,7 +401,7 @@ class Details extends React.Component {
                                                         <View>
                                                             <View style={[styles.container, { flexDirection: 'row', marginTop: 20, paddingHorizontal: 0, paddingVertical: 0 }]}>
                                                                 <View style={{ justifyContent: 'center', backgroundColor: '#ffca30', borderTopLeftRadius: 10, borderBottomStartRadius: 10, width: 60, height: null }}>
-                                                                    <Image source={{ uri: 'https://talentsroot.tribital.ml/images/staricon1.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
+                                                                    <Image source={{ uri: 'https://www.talentsroot.com/images/staricon1.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
                                                                 </View>
                                                                 <View style={{ display: 'flex', marginLeft: 10, padding: 20 }}>
                                                                     <Text style={{ fontSize: 20, marginVertical: 10, width: 200 }}>{item.data.title}</Text>
@@ -447,7 +447,7 @@ class Details extends React.Component {
                                                     <View>
                                                         <View style={[styles.container, { flexDirection: 'row', marginTop: 20, paddingHorizontal: 0, paddingVertical: 0 }]}>
                                                             <View style={{ justifyContent: 'center', backgroundColor: '#2ec09c', borderTopLeftRadius: 10, borderBottomStartRadius: 10, width: 60, height: null }}>
-                                                                <Image source={{ uri: 'https://talentsroot.tribital.ml/images/accepted.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
+                                                                <Image source={{ uri: 'https://www.talentsroot.com /images/accepted.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
                                                             </View>
                                                             <View style={{ display: 'flex', marginLeft: 10, padding: 20 }}>
                                                                 <Text style={{ fontSize: 20, marginVertical: 10, width: 200 }}>{item.data.title}</Text>
@@ -462,7 +462,7 @@ class Details extends React.Component {
                                                     <View>
                                                         <View style={[styles.container, { flexDirection: 'row', marginTop: 20, paddingHorizontal: 0, paddingVertical: 0 }]}>
                                                             <View style={{ justifyContent: 'center', backgroundColor: '#10a2ef', borderTopLeftRadius: 10, borderBottomStartRadius: 10, width: 60, height: null }}>
-                                                                <Image source={{ uri: 'https://talentsroot.tribital.ml/images/delivered.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
+                                                                <Image source={{ uri: 'https://www.talentsroot.com /images/delivered.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
                                                             </View>
                                                             <View style={{ display: 'flex', marginLeft: 10, padding: 20 }}>
                                                                 <Text style={{ fontSize: 20, marginVertical: 10, width: 200 }}>{item.data.title}</Text>
@@ -492,7 +492,7 @@ class Details extends React.Component {
                                                     <View>
                                                         <View style={[styles.container, { flexDirection: 'row', marginTop: 20, paddingHorizontal: 0, paddingVertical: 0 }]}>
                                                             <View style={{ justifyContent: 'center', backgroundColor: '#2ec09c', borderTopLeftRadius: 10, borderBottomStartRadius: 10, width: 60, height: null }}>
-                                                                <Image source={{ uri: 'https://talentsroot.tribital.ml/images/accepted.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
+                                                                <Image source={{ uri: 'https://www.talentsroot.com /images/accepted.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
                                                             </View>
                                                             <View style={{ display: 'flex', marginLeft: 10, padding: 20 }}>
                                                                 <Text style={{ fontSize: 20, marginVertical: 10, width: 200 }}>{item.data.title}</Text>
@@ -507,7 +507,7 @@ class Details extends React.Component {
                                                     <View>
                                                         <View style={[styles.container, { flexDirection: 'row', marginTop: 20, paddingHorizontal: 0, paddingVertical: 0 }]}>
                                                             <View style={{ justifyContent: 'center', backgroundColor: '#2ec09c', borderTopLeftRadius: 10, borderBottomStartRadius: 10, width: 60, height: null }}>
-                                                                <Image source={{ uri: 'https://talentsroot.tribital.ml/images/accepted.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
+                                                                <Image source={{ uri: 'https://www.talentsroot.com /images/accepted.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
                                                             </View>
                                                             <View style={{ display: 'flex', marginLeft: 10, padding: 20 }}>
                                                                 <Text style={{ fontSize: 20, marginVertical: 10, width: 200 }}>{item.data.title}</Text>
@@ -528,7 +528,7 @@ class Details extends React.Component {
                                                                         {item.type == 0 ?
                                                                             <>
                                                                                 <View style={{ justifyContent: 'center', backgroundColor: '#ff6060', borderTopLeftRadius: 10, borderBottomStartRadius: 10, width: 60, height: null }}>
-                                                                                    <Image source={{ uri: 'https://talentsroot.tribital.ml/images/accepted.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
+                                                                                    <Image source={{ uri: 'https://www.talentsroot.com /images/accepted.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
                                                                                 </View>
                                                                                 <View style={{ display: 'flex', marginLeft: 10, padding: 20 }}>
                                                                                     <Text style={{ fontSize: 20, marginVertical: 10, width: 200 }}>{item.data.title}</Text>
@@ -537,7 +537,7 @@ class Details extends React.Component {
                                                                             </> :
                                                                             <>
                                                                                 <View style={{ justifyContent: 'center', backgroundColor: '#10a2ef', borderTopLeftRadius: 10, borderBottomStartRadius: 10, width: 60, height: null }}>
-                                                                                    <Image source={{ uri: 'https://talentsroot.tribital.ml/images/delivered.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
+                                                                                    <Image source={{ uri: 'https://www.talentsroot.com /images/delivered.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
                                                                                 </View>
                                                                                 <View style={{ display: 'flex', marginLeft: 10, padding: 20 }}>
                                                                                     <Text style={{ fontSize: 20, marginVertical: 10, width: 200 }}>{item.data.title}</Text>
@@ -565,9 +565,9 @@ class Details extends React.Component {
                                                                     <>
                                                                         <View style={{ justifyContent: 'center', backgroundColor: '#10a2ef', borderTopLeftRadius: 10, borderBottomStartRadius: 10, width: 60, height: null }}>
                                                                             {item.type == 1 || item.type == 2 ?
-                                                                                <Image source={{ uri: 'https://talentsroot.tribital.ml/images/sent.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
+                                                                                <Image source={{ uri: 'https://www.talentsroot.com /images/sent.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
                                                                                 :
-                                                                                <Image source={{ uri: 'https://talentsroot.tribital.ml/images/accepted.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
+                                                                                <Image source={{ uri: 'https://www.talentsroot.com /images/accepted.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
                                                                             }
                                                                         </View>
                                                                         <View style={{ display: 'flex', marginLeft: 10, padding: 20 }}>
@@ -928,7 +928,7 @@ class Details extends React.Component {
                                         {/*All views of Modal*/}
                                         <View style={{ flexDirection: 'column', padding: 20, alignContent: 'center', alignSelf: 'center', backgroundColor: 'white' }}>
                                             <View>
-                                                <Image style={{ height: 200, width: 200 }} resizeMode='contain' source={{ uri: this.state.imagePath }} />
+                                                <Image style={{ height: 200, width: 200 }} resizeMode={'contain'} source={{ uri: this.state.imagePath }} />
                                                 <TouchableOpacity style={styles.confirm} onPress={() => this.downloadAttachment(this.state.imagePath)}>
                                                     <Text style={{ color: 'white' }}>Download</Text>
                                                 </TouchableOpacity>

@@ -26,7 +26,7 @@ export default StyleSheet.create({
     },
     backgroundImage: {
         flex : 1,
-        resizeMode : 'contain',
+        width: 200,
         aspectRatio : 1,
       },
       circleDiv: {

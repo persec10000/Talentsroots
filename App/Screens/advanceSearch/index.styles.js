@@ -94,7 +94,8 @@ export default StyleSheet.create({
     textInputStyles: {
         marginTop: 5,
         fontSize: 12,
-        paddingHorizontal: 20,
+        paddingLeft:20,
+        paddingRight: 35,
         paddingVertical: 10,
         width: '100%',
         borderWidth: 1,
@@ -142,4 +143,18 @@ export default StyleSheet.create({
         color: '#FFF',
         textAlign: 'center',
     },
+    textClose: {
+        position:'absolute', 
+        justifyContent:'center', 
+        right: 15, 
+        top: 0, 
+        bottom: 0
+    },
+    categoryClose: {
+        position:'absolute', 
+        justifyContent:'center', 
+        right: 35, 
+        top: 0, 
+        bottom: 0
+    }
 });

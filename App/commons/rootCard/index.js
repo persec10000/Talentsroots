@@ -5,9 +5,7 @@ import { connect } from 'react-redux';
 import styles from './index.style';
 
 RootCard = props => {
-
   const [online, setOnline] = useState( props.is_online == 1 ? true : false)
-
   useEffect(() => {
     const socket = props.socket
     socket.on('user_message', (data) => {
@@ -44,6 +42,7 @@ RootCard = props => {
             >
               <Image
                 style={styles.headerImageStyle}
+                resizeMode={'contain'}
                 source={{ uri: props.r_root_image }}
               />
             </TouchableOpacity>
@@ -96,7 +95,7 @@ RootCard = props => {
                       style={
                         styles.starRatingText
                       }>
-                      {`${props.r_rating}.0`}
+                      {`${props.r_rating}`}
                     </Text>
                     <Text
                       style={{ fontSize: 13, color: '#748f9e' }}>
@@ -109,6 +108,7 @@ RootCard = props => {
                 </Text>
               }
             </View>
+            {props.c_title&&
             <Text
               onPress={() => {
                 console.log('Open', props.c_parent_id, props.c_id)
@@ -117,6 +117,7 @@ RootCard = props => {
               style={{ fontSize: 12, color: '#748f9e' }}>
               {`${(props.c_title).toUpperCase()}`}
             </Text>
+            }
           </View>
         </View>
         <View style={styles.doshline} />

@@ -54,7 +54,9 @@ const Withdraw = (props) => {
         <CheckBox 
         value={cashu}
         onValueChange={() => setCashu(!cashu)}/>
-        <Image style={{ marginLeft: 30, height: 30, width: 60 }} resizeMode={'contain'} source={require('../../assets/icons/cashu.png')} />
+        <Image style={{ marginLeft: 30, height: 30, width: 60 }} 
+          resizeMode={'contain'} 
+          source={require('../../assets/icons/cashu.png')} />
       </View>
       <TextInput
         style={styles.textInput}

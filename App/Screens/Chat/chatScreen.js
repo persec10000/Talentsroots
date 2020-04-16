@@ -13,6 +13,7 @@ import {
     PermissionsAndroid,
     Button,
     Picker,
+    Keyboard,
     TouchableHighlight,
     ActivityIndicator
 } from 'react-native';
@@ -21,15 +22,22 @@ import { connect } from 'react-redux';
 window.navigator.userAgent = 'react-native';
 import SocketIOClient from 'socket.io-client/dist/socket.io';
 import FilePickerManager from 'react-native-file-picker';
-import { sendMessage, loadMoreChat, getChats, rejectCustomOffer, uploadFile, blockUserService, favUserService, getRoots, sendCustomOfferService, withdrawOffer } from '../../services/ChatList';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
+import { sendMessage, eventRead, eventTyping, loadMoreChat, getChats, rejectCustomOffer, uploadFile, blockUserService, favUserService, getRoots, sendCustomOfferService, withdrawOffer } from '../../services/ChatList';
+import { getPreviousChats } from '../../services/ChatList';
 import { regex_service } from '../../services/home/index'
 import { Rating, AirbnbRating } from 'react-native-elements';
-import Icon from "react-native-vector-icons/FontAwesome";
+import Icon from "react-native-vector-icons/Entypo";
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import RNFetchBlob from 'rn-fetch-blob'
 import { widthPercentageToDP, heightPercentageToDP, moderateScale } from '../../commons/responsive_design';
 import Video from 'react-native-video';
+import Dialog, { DialogFooter, DialogButton, DialogContent } from 'react-native-popup-dialog';
+import { RNVoiceRecorder } from 'react-native-voice-recorder'
+import Player from '../../components/player'
+import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 // const URL = 'https://socket.tribital.ml';
-const URL = 'https://socket.tribital.ml';
 
 import {
     Menu,
@@ -39,8 +47,9 @@ import {
 } from 'react-native-popup-menu';
 import moment from 'moment';
 import { Row } from 'native-base';
+import { cos } from 'react-native-reanimated';
 const width = Dimensions.get('window').width
-
+let offsetNum = 30;
 const ShowCustomOfferRootsDetails = (props) => {
     const { item, show, con_id, token, selectedOffer, offerDetails, selectedDays, price, cancelButton, sendCustomOffer, setOfferDetail, setDays, setPrice } = props;
 
@@ -58,7 +67,7 @@ const ShowCustomOfferRootsDetails = (props) => {
                         <Text>{selectedOffer.r_title}</Text>
                     </View>
                     <View style={styles.paddingModal}>
-                        <Image resizeMode="contain" style={{ height: 100, width: 100 }} source={{ uri: item.r_root_image }} />
+                        <Image resizeMode={'contain'} style={{ height: 100, width: 100 }} source={{ uri: item.profile }} />
                     </View>
                     <View style={styles.paddingModal}>
                         <TextInput
@@ -71,7 +80,7 @@ const ShowCustomOfferRootsDetails = (props) => {
                     <View style={styles.picker}>
                         <Picker
                             selectedValue={selectedDays}
-                            style={{ height: 70, borderColor: 'lightgrey', borderWidth: 1 }}
+                            style={{ height: 50, borderColor: 'lightgrey', borderWidth: 1 }}
                             onValueChange={(itemValue, itemIndex) =>
                                 setDays(itemValue)
                             }>
@@ -174,8 +183,17 @@ class ChatScreen extends React.Component {
             curTime: moment(new Date()).format("hh:mm A"),
             uploaded: false,
             isViolation: false,
-            scroll: false
+            scroll: false,
+            videoPaused: [],
+            customOfferVisible: false,
+            isvoiceRecord:false,
+            isvoiceSend: false,
+            fileName: [],
+            isTouch: false,
+            last_ping_time: ''
         }
+        this.keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', this.scrollToBottom.bind(this));
+
         // console.log("SOCKET URL ++++ >>>>>>", 'https://socket.tribital.ml?user_id=' + this.props.id, {
         //     transport: ['websocket'],
         //     jsonp: false
@@ -191,13 +209,9 @@ class ChatScreen extends React.Component {
     }
 
     componentDidMount = async () => {
-
-        console.log("conversation id ", this.props.screenProps)
         const messagesArray = this.state.messages;
         this.props.screenProps.on('user_message', (data) => {
-            console.log("Socket event fired", data)
             const userMessage = JSON.parse(data)
-
             if (userMessage.type == "chat") {
                 messagesArray.push({
                     message: userMessage.data.message_text,
@@ -211,13 +225,21 @@ class ChatScreen extends React.Component {
                 this.setState({
                     messages: messagesArray,
                     isTyping: false
+                }, ()=>{
+                    eventRead(userMessage.data.conversation_id, userMessage.data.message_text, this.props.token)
                 })
             } else if (userMessage.type == "chat_event_typing") {
-                this.setState({ isTyping: true, chat_id: userMessage.data.conversation_id })
+                this.setState({ isTyping: true, chat_id: userMessage.data.conversation_id }, () => {
+                    setTimeout(() => {
+                        this.setState({isTyping: false});
+                        }, 6000);
+                })
             } else if (userMessage.type == "chat_event_read") {
                 if (userMessage.data.conversation_id == this.state.conversation_id) {
-                    console.log("chat event fired", userMessage);
-                    this.setState({ isRead: true })
+                    this.state.messages.map(item => {
+                        return item.isRead = 1
+                    })
+                    // this.setState({ isRead: true })
                 }
             } else if (userMessage.type == "user_login") {
                 if (userMessage.data.user_id == this.props.navigation.state.params.user.id) {
@@ -230,9 +252,8 @@ class ChatScreen extends React.Component {
                 }
             }
         })
-
-        let chats = await getChats(this.state.conversation_id, this.state.token);
-
+        eventRead(this.props.navigation.state.params.user.conversation_id, this.props.token)
+        let chats = await getChats(this.state.conversation_id, this.props.token);
         for (let i = 0; i < chats.data.length; i++) {
             messagesArray.push({
                 message: chats.data[i].message,
@@ -246,14 +267,13 @@ class ChatScreen extends React.Component {
                 isRead: chats.data[i].read_by_status
             })
         }
-        // console.log(chats.data)
         this.setState({
             messages: messagesArray
         })
 
         if (this.props.type == 0) {
             let rootsArray = []
-            let customOfferRoots = await getRoots(this.state.token);
+            let customOfferRoots = await getRoots(this.props.token);
             this.setState({ activeRootCount: customOfferRoots.data.activeRootCount })
             for (let i = 0; i < customOfferRoots.data.data.length; i++) {
                 rootsArray.push(customOfferRoots.data.data[i])
@@ -263,19 +283,30 @@ class ChatScreen extends React.Component {
                 customRoots: rootsArray
             })
         }
-
-        let regex = await regex_service(this.state.token)
+        let regex = await regex_service(this.props.token)
         let arr = regex.data
         this.setState({ regex: arr })
-
         setInterval(() => {
             this.setState({
                 curTime: moment(new Date()).format("hh:mm A")
-            })
+            });
+            this.getChats()
         }, 6000)
 
     }
-
+    getChats = async () => {
+        let response = await getPreviousChats(this.props.token, '');
+        console.log("response.data",response.data)
+        response.data.map((res,index) => {
+            if (res.conversation_id == this.state.conversation_id){
+                console.log('resssssssssssssss======',res)
+                this.setState({last_ping_time: res.last_ping_time})
+            }
+        })
+    }
+    componentWillUnmount () {
+        this.keyboardDidShowListener.remove();
+    }
     setOfferDetail = (text) => {
         this.setState({ offer_details: text })
     }
@@ -300,7 +331,6 @@ class ChatScreen extends React.Component {
     onSend = async (myMessage) => {
         const violation = this.checkViolation(myMessage);
         if (violation) {
-            console.log("setting state true...........")
             return Alert.alert(
                 'Warning',
                 'You are trying to share a contact details. this will cause your account to be suspended. If you need those details to be used for a purchased order, you can send it from the order page',
@@ -327,11 +357,11 @@ class ChatScreen extends React.Component {
                     scroll: false
                 })
                 await sendMessage(this.state.conversation_id, myMessage, this.props.token)
-
+                this.setState({isRead:false});
             }
         }
     }
-
+  
     showMessage = () => {
         return this.state.messages.map((item, index) => {
             if (item) {
@@ -345,11 +375,12 @@ class ChatScreen extends React.Component {
                                     <View style={{ flexDirection: 'column' }}>
                                         <View style={{ flexDirection: 'row', alignSelf: 'flex-end' }}>
                                             <Text style={{ color: '#7F7F7F', fontWeight: 'bold' }}>Me </Text>
-                                            <Text style={{ color: '#7F7F7F' }}>{item.created_at}</Text></View>
+                                            <Text style={{ color: '#7F7F7F' }}>{item.created_at}</Text>
+                                        </View>
                                         <View style={{ flexDirection: 'row', flex: 1, alignSelf: 'flex-end', maxWidth: 200 }}>
                                             <Text style={item.from_id === this.props.id ? styles.textMessageMe : styles.textMessageUser}>{item.message}</Text>
                                         </View>
-                                        {item.isRead == 1 || this.state.isRead ? <Icon style={{ alignSelf: 'flex-end' }} name="check" color='#10A2EF' size={15} /> : null}
+                                        {item.isRead == 1 ? <Icon style={{ alignSelf: 'flex-end' }} name="check" color='#10A2EF' size={15} /> : null}
                                     </View>
                                     <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: this.props.profile }} />
                                 </View>
@@ -382,8 +413,8 @@ class ChatScreen extends React.Component {
                                                     <Text style={{ color: '#7F7F7F', fontWeight: 'bold' }}>Me</Text>
                                                     <Text style={{ color: '#7F7F7F' }}>{item.created_at}</Text>
                                                 </View>
-                                                <TouchableOpacity onPress={() => { this.setState({ imagePreview: true, imagePath: 'https://cdn.talentsroot.com/upload_staging/chat/' + item.file.file_name }) }}>
-                                                    <Image source={{ uri: 'https://cdn.talentsroot.com/upload_staging/chat/' + item.file.file_name }}
+                                                <TouchableOpacity onPress={() => { this.setState({ imagePreview: true, imagePath: 'https://cdn.talentsroot.com/upload/chat/' + item.file.file_name }) }}>
+                                                    <Image source={{ uri: 'https://cdn.talentsroot.com/upload/chat/' + item.file.file_name }}
                                                         style={item.from_id === this.props.id ? styles.messageMeImage : styles.messageUserImage} />
                                                 </TouchableOpacity>
                                             </View>
@@ -411,8 +442,8 @@ class ChatScreen extends React.Component {
                                                 <View style={{ flexDirection: 'row' }}>
                                                     <Text style={{ color: '#7F7F7F', fontWeight: 'bold' }}>{item.name}</Text><Text style={{ color: '#7F7F7F' }}>{item.created_at}</Text>
                                                 </View>
-                                                <TouchableOpacity onPress={() => { this.setState({ imagePreview: true, imagePath: 'https://cdn.talentsroot.com/upload_staging/chat/' + item.file.file_name }) }}>
-                                                    <Image source={{ uri: 'https://cdn.talentsroot.com/upload_staging/chat/' + item.file.file_name }}
+                                                <TouchableOpacity onPress={() => { this.setState({ imagePreview: true, imagePath: 'https://cdn.talentsroot.com/upload/chat/' + item.file.file_name }) }}>
+                                                    <Image source={{ uri: 'https://cdn.talentsroot.com/upload/chat/' + item.file.file_name }}
                                                         style={item.from_id === this.props.id ? styles.messageMeImage : styles.messageUserImage} />
                                                 </TouchableOpacity>
                                             </View>
@@ -429,7 +460,52 @@ class ChatScreen extends React.Component {
                                 }
                             </View>
                         )
-                    } else if (!item.data) { //files
+                    }
+                    else if (item.file.type == 'audio/wav') {
+                        return (
+                            <View key={index} style={
+                                item.from_id === this.props.id ? styles.messageMe : styles.messageUser
+                            }>
+                                {item.from_id == this.props.id
+                                    ?
+                                        <View style={{ flexDirection: 'row'}}>
+                                            <View style={{flexDirection:'column'}}>
+                                                <View style={{ flexDirection: 'row', alignSelf: 'flex-end' }}>
+                                                    <Text style={{ color: '#7F7F7F', fontWeight: 'bold' }}>Me</Text>
+                                                    <Text style={{ color: '#7F7F7F' }}>{item.created_at}</Text>
+                                                </View>
+                                                <View style={{width:widthPercentageToDP(70), height: heightPercentageToDP(8)}}>
+                                                    <Player
+                                                        url={'https://cdn.talentsroot.com/upload/chat/'+item.file.file_name} 
+                                                        // recordPermission={()=>this.getFile(item.file, index)}
+                                                    />
+                                                </View>
+                                                {item.isRead == 1 ? <Icon style={{ alignSelf: 'flex-end' }} name="check" color='#10A2EF' size={15} /> : null}
+                                            </View>
+                                            <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: this.props.profile }} />
+                                        </View>
+                                    :
+                                    <>
+                                        <View style={{ flexDirection: 'row' }}>
+                                            <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: this.props.navigation.state.params.user.profile }} />
+                                            <View style={{ flexDirection: 'column' }}>
+                                                <View style={{ flexDirection: 'row' }}>
+                                                    <Text style={{ color: '#7F7F7F', fontWeight: 'bold' }}>{item.name}</Text><Text style={{ color: '#7F7F7F' }}>{item.created_at}</Text>
+                                                </View>
+                                                <View style={{width:widthPercentageToDP(70), height: heightPercentageToDP(8)}}>
+                                                    <Player
+                                                        url={'https://cdn.talentsroot.com/upload/chat/'+item.file.file_name} 
+                                                        // recordPermission={()=>this.getFile(item.file, index)}
+                                                    />
+                                                </View>
+                                            </View>
+                                        </View>
+                                    </>
+                                }
+                            </View>
+                        )
+                    }
+                    else if (!item.data) { //files
                         return (
                             <View key={index} style={
                                 item.from_id === this.props.id ? styles.messageMe : styles.messageUser
@@ -478,7 +554,6 @@ class ChatScreen extends React.Component {
                         )
                     }
                 } else if (item.data) { //custom offer
-                    console.log(".........",item.data)
                     return (
                         <View key={index} style={{ flexDirection: 'row' },
                             item.from_id === this.props.id ? styles.messageMe : styles.messageUser
@@ -566,14 +641,18 @@ class ChatScreen extends React.Component {
                                             </View>
                                             <View style={styles.videoContainer}>
                                                 <Video
-                                                    source={{ uri: 'https://cdn.talentsroot.com/upload_staging/chat/' + item.video.file_name }}
+                                                    source={{ uri: 'https://cdn.talentsroot.com/upload/chat/' + item.video.file_name }}
                                                     ref={(ref) => {
                                                         this._player = ref
-                                                    }}
+                                                    }} 
+                                                    onLoad={(e) => {
+                                                        let clonevideoPaused = [...this.state.videoPaused];
+                                                        clonevideoPaused[index] = true
+                                                        this.setState({ videoPaused: clonevideoPaused })}}
+                                                    paused={this.state.videoPaused[index]}
                                                     controls={true}
                                                     resizeMode={'contain'}
                                                     muted={false}
-                                                    paused={false}
                                                     style={styles.video}
                                                 />
                                             </View>
@@ -604,14 +683,18 @@ class ChatScreen extends React.Component {
                                             </View>
                                             <View style={styles.videoContainer}>
                                                 <Video
-                                                    source={{ uri: 'https://cdn.talentsroot.com/upload_staging/chat/' + item.video.file_name }}
+                                                    source={{ uri: 'https://cdn.talentsroot.com/upload/chat/' + item.video.file_name }}
                                                     ref={(ref) => {
                                                         this._player = ref
                                                     }}
+                                                    onLoad={(e) => {
+                                                        let clonevideoPaused = [...this.state.videoPaused];
+                                                        clonevideoPaused[index] = true
+                                                        this.setState({ videoPaused: clonevideoPaused })}}
+                                                    paused={this.state.videoPaused[index]}
                                                     controls={true}
                                                     resizeMode={'contain'}
                                                     muted={true}
-                                                    paused={true}
                                                     style={styles.video} />
                                             </View>
                                         </View>
@@ -633,10 +716,11 @@ class ChatScreen extends React.Component {
 
         });
     }
+    customOffer = async() => {
 
+    }
     rejectCustomOffer = async () => {
-        let response = await rejectCustomOffer(this.state.conversation_id, this.state.token, 0)
-        console.log("custom offer reject",response)
+        let response = await rejectCustomOffer(this.state.conversation_id, this.props.token, 0)
         if (response.status == 1) {
             Alert.alert("Offer Rejected")
             this.setState({ offerRejected: true })
@@ -663,8 +747,7 @@ class ChatScreen extends React.Component {
     }
 
     withdrawConfirm = async () => {
-        let response = await withdrawOffer(this.state.conversation_id, this.state.token, 1)
-        console.log(response)
+        let response = await withdrawOffer(this.state.conversation_id, this.props.token, 1)
         if (response.status == 1) {
             Alert.alert("Withdrawn")
             this.setState({ offerWithdrawn: true })
@@ -688,7 +771,7 @@ class ChatScreen extends React.Component {
                     path: dirs.DownloadDir + file.file_name,
                 },
             })
-            .fetch('GET', 'https://cdn.talentsroot.com/upload_staging/chat/' + file.file_name, {
+            .fetch('GET', 'https://cdn.talentsroot.com/upload/chat/' + file.file_name, {
                 //some headers ..
             })
             .then((res) => {
@@ -709,7 +792,76 @@ class ChatScreen extends React.Component {
             console.warn(err);
         }
     }
+    // getFile = async (item, index) => {
+    //     let newfileName = item.file_name.replace('blob','mp3')
+    //     const exist = await RNFetchBlob.fs.exists(`${RNFetchBlob.fs.dirs.DocumentDir}/${newfileName}`)
+    //         if (exist){
+    //             return newfileName
+    //         }else{
+    //             return res = await this.voiceRecordPermission(item, index);
+    //         }
+    // }
+    voiceSend = async() => {
+        let isvoice = true;
+        let res = await uploadFile(this.state.recordingPath, this.state.conversation_id, 0, this.props.token, isvoice);
+        const fileUpload = this.state.messages;
+        fileUpload.push({
+            message: res.data && res.data.message ? res.data.message : '',
+            from_id: res.data.from_user_id,
+            file: {
+                name: res.data.data.name,
+                file_name: res.data.data.file_name,
+                type: res.data.data.type,
+                size: this.state.docSize
+            },
+            name: res.data.name,
+            created_at: res.data.created_at
+        })
+        this.setState({ messages: fileUpload, uploaded: false })
+        this.setState({isvoiceSend:false})
+    }
+    recordStart = () => {
+        this.setState({isvoiceRecord: false} , ()=>{
+            RNVoiceRecorder.Record({
+                format: 'wav',
+                onDone: (path) => {
+                    this.setState({recordingPath : path});
+                    this.setState({isvoiceSend: true})
+                },
+                onCancel: () => {
+                    console.log('on cancel')
+                }
+            })
+        })
+    }
 
+    // voiceRecordPermission = async(file, index) => {
+    //     try {
+    //         const granted = await PermissionsAndroid.requestMultiple(
+    //             [PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+    //             PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE]);
+    //             const fileName = await this.voiceRecord(file, index);
+    //             return fileName;
+    //     } catch (err) {
+    //         console.warn(err);
+    //     }
+    // }
+    // voiceRecord = async(file, index) => {
+    //     let voicefileName = file.file_name.replace('blob', 'mp3')
+    //     const { dirs } = RNFetchBlob.fs;
+    //     const res = await RNFetchBlob
+    //         .config({
+    //             fileCache: true,
+    //             path : `${RNFetchBlob.fs.dirs.DocumentDir}/${voicefileName}`,
+    //         })
+    //         .fetch('get', 'https://cdn.talentsroot.com/upload/chat/' + file.file_name, 
+    //         {
+    //          'Content-Type':  'multipart/form-data'
+    //         });
+    //     let clonefileName = [...this.state.fileName];
+    //     clonefileName[index] = voicefileName;
+    //     return clonefileName[index];
+    // }
     uploadFile = async () => {
         FilePickerManager.showFilePicker(null, async (response) => {
             if (response.didCancel) {
@@ -717,7 +869,6 @@ class ChatScreen extends React.Component {
             else if (response.error) {
             }
             else {
-                console.log("PPPPPPPPPPPP", response);
                 if (response.type == "image/jpeg") {
                     this.setState({ isWaterMarkModalVisible: true, fileResponse: response, docSize: response.size })
                 }
@@ -768,7 +919,6 @@ class ChatScreen extends React.Component {
     }
 
     uploadDocument = async (response) => {
-        console.log("===================", response)
         this.setState({ uploaded: true })
         let res = await uploadFile(response, this.state.conversation_id, 1, this.props.token)
         const fileUpload = this.state.messages;
@@ -805,7 +955,6 @@ class ChatScreen extends React.Component {
             ],
             { cancelable: false },
         );
-
     }
 
     blockConfirm = async () => {
@@ -904,16 +1053,25 @@ class ChatScreen extends React.Component {
         if (this.state.activeRootCount != 0) {
             return (
                 <View style={{ flexDirection: 'column', padding: 10, alignContent: 'center', alignSelf: 'center', backgroundColor: 'white' }}>
+                    {/* <TouchableOpacity onPress={() => this.setState({isVisible:false})} style={{position:'absolute', top:10, right:5}}>
+                        <MaterialCommunityIcons name='close-circle-outline' color='#7F7F7F' size={30}/>
+                    </TouchableOpacity> */}
                     <View>
-                        <Text style={{ color: 'red', fontSize: 30 }}>Custom Offer</Text>
+                        <Text style={{ color: '#000', fontSize: 26 }}>Custom Offer</Text>
                     </View>
+                    <View style={{
+                        borderStyle: 'dotted',
+                        borderWidth: 1,
+                        borderRadius: 1,
+                        borderColor: '#CDCCCB'
+                    }}/>
                     {
                         this.state.customRoots.map((item, index) => {
                             return (
                                 <>
                                     <View key={index} style={{ flexDirection: 'row', padding: 5, borderBottomColor: '#7F7F7F', borderBottomWidth: 1 }}>
-                                        <Image style={{ height: 50, width: 70 }} resizeMode="contain" source={{ uri: item.r_root_image }} />
-                                        <View style={{ flexDirection: 'row', width: 150, flexWrap: 'wrap', marginLeft: 5 }}>
+                                        <Image style={{ height: 80, width: 80 }} source={{ uri: item.profile }} />
+                                        <View style={{ flexDirection: 'row', width: 140, flexWrap: 'wrap', marginLeft: 5 }}>
                                             <TouchableOpacity onPress={() => { this.setState({ isSecondModalVisible: true, selectedOffer: item, isVisible: false }) }}>
                                                 <Text style={{ fontSize: 15, color: '#10A2EF', marginLeft: 5 }}>{item.r_title}</Text>
                                             </TouchableOpacity>
@@ -934,8 +1092,11 @@ class ChatScreen extends React.Component {
         }
     }
     
-    loadMoreMessages = async (offset) => {
-        let chats = await loadMoreChat(this.state.conversation_id, this.state.token);
+    loadMoreMessages = async () => {
+        let chats = await loadMoreChat(this.state.conversation_id, this.props.token, offsetNum);
+        if (chats.status == 1){
+            offsetNum = chats.offset
+        }
         let messagesArray = []
         for (let i = 0; i < chats.data.length; i++) {
             messagesArray.push({
@@ -959,19 +1120,32 @@ class ChatScreen extends React.Component {
     }
 
     scrollToBottom = () => {
-        console.log("scroll to end chat...........")
-        this._scrollView.scrollToEnd({ animated: true });
+        this._scrollView.scrollToEnd({animated: true});
+    }
+    
+    getUserProfile = async (token, userId) => {
+        const requestData = {
+          token,
+          user_id: userId
+        }
+        const response = await profile_service(requestData);
+        if (response.status === 1) {
+            return response.data
+        }
     }
 
     render() {
+        console.log("lastping===============", this.state.last_ping_time)
         return (
-            <View style={styles.mainContainer}>
+            <KeyboardAvoidingView 
+                behavior={Platform.OS === "ios" ? "padding" : null}
+                style={styles.mainContainer}>
                 <View style={styles.header_container}>
                     <View style={{ flexDirection: 'row', justifyContent: 'center', }}>
                         <TouchableOpacity
                             style={{ alignSelf: 'center' }}
                             onPress={() => { this.props.navigation.goBack(null) }}>
-                            <Icon name="chevron-left" color='#10A2EF' size={23} style={{ paddingRight: 20, paddingLeft: 10 }} />
+                            <Icon name="chevron-left" color='#10A2EF' size={27} style={{ paddingLeft: 5, marginTop: 10 }} />
                         </TouchableOpacity>
                         <View
                             style={{
@@ -980,7 +1154,7 @@ class ChatScreen extends React.Component {
                                 alignItems: 'center',
                             }}>
                             <View style={{ flexDirection: 'row', paddingTop: 10, justifyContent: 'center', alignItems: 'center' }}>
-                                <View style={{ backgroundColor: this.state.userOnline ? '#2EC09C' : 'red', height: 10, width: 10, borderRadius: 100, marginTop: 8, justifyContent: 'center', alignItems: 'center' }}></View>
+                                <View style={{ backgroundColor: this.state.userOnline ? '#2EC09C' : 'red', height: 10, width: 10, borderRadius: 100, marginTop: 5, justifyContent: 'center', alignItems: 'center' }}></View>
                                 <TouchableOpacity onPress={() => { this.props.navigation.navigate("Profile", { user_id: this.props.navigation.state.params.user.id }) }}>
                                     <Text numberOfLines={1} style={styles.user_name}>{this.props.navigation.state.params.user.name}</Text>
                                 </TouchableOpacity>
@@ -1002,11 +1176,14 @@ class ChatScreen extends React.Component {
                                 {!this.state.userOnline ?
                                     <>
                                         <View style={styles.headerItem}>
-                                            <Text style={{ fontSize: 10 }}>Last seen : </Text>
-                                            <Text style={{ fontSize: 10 }}>{this.state.userLogOut
+                                            <Text style={{ fontSize: 12 }}>Last Seen :</Text>
+                                            <Text style={{ fontSize: 12 }}>{this.state.userLogOut
                                                 ? this.state.lastSeenValue
                                                 : typeof (this.props.navigation.state.params.user.last_ping_time) == 'string' ?
+                                                    this.state.last_ping_time == ''?
                                                     this.props.navigation.state.params.user.last_ping_time
+                                                    :
+                                                    this.state.last_ping_time
                                                     :
                                                     moment.unix(this.props.navigation.state.params.user.last_ping_time).fromNow()}
                                             </Text>
@@ -1014,17 +1191,17 @@ class ChatScreen extends React.Component {
                                     </>
                                     : <View>{}</View>}
                                 <View style={styles.headerItem}>
-                                    <Text style={{ fontSize: 10 }}>Local time:</Text>
-                                    <Text style={{ fontSize: 10, paddingLeft: 2 }}>{this.state.curTime}</Text>
+                                    <Text style={{ fontSize: 12 }}>Local Time :</Text>
+                                    <Text style={{ fontSize: 12, paddingLeft: 2 }}>{this.state.curTime}</Text>
                                 </View>
-                                <Image style={{ color: 'black', marginLeft: 5, height: 20, width: 25 }} source={{ uri: this.props.navigation.state.params.user.flag }} />
+                                <Image style={{ color: 'black', marginLeft: 5, height: 15, width: 20 }} source={{ uri: this.props.navigation.state.params.user_data.flag }} />
                             </View>
                         </View>
                         <Menu
                             style={{ alignSelf: 'center' }}
                         >
                             <MenuTrigger>
-                                <Icon name="ellipsis-v" color='grey' size={25} style={{ paddingHorizontal: 15 }} /></MenuTrigger>
+                                <Icon name="dots-three-vertical" color='grey' size={25} style={{ paddingHorizontal: 7, marginTop:20 }} /></MenuTrigger>
                             <MenuOptions>
                                 <MenuOption
                                     style={styles.modalItemStyle}
@@ -1099,16 +1276,34 @@ class ChatScreen extends React.Component {
                     <Modal
                         visible={this.state.isWaterMarkModalVisible}
                         animationType={"fade"}
-                        transparent={true}
+                        // transparent={true}
                         deviceWidth={widthPercentageToDP(100)}
                         deviceHeight={heightPercentageToDP(100)}
                     >
                         {/*All views of Modal*/}
-                        <View style={{ flexDirection: 'row', padding: 20, alignContent: 'center', alignSelf: 'center', backgroundColor: 'white' }}>
+                        <View style={{ 
+                            flexDirection: 'row', 
+                            padding: 20, 
+                            alignContent: 'center', 
+                            alignSelf: 'center', 
+                            backgroundColor: 'white', 
+                            borderWidth:1, 
+                            borderColor: '#7F7F7F', 
+                            shadowColor: "#000",
+                            shadowOffset: {
+                                width: 0,
+                                height: 7,
+                            },
+                            shadowOpacity: 0.41,
+                            shadowRadius: 9.11,
+                            elevation: 14,}}>
+                            <TouchableOpacity onPress={() => this.setState({isWaterMarkModalVisible:false})} style={{position:'absolute', top:5, right:5}}>
+                                <MaterialCommunityIcons name='close-circle-outline' color='#7F7F7F' size={30}/>
+                            </TouchableOpacity>
                             <View>
                                 <Image style={{ height: 150, width: 150 }} source={{ uri: this.state.fileResponse.uri }} />
                             </View>
-                            <View style={{ flexDirection: 'column' }}>
+                            <View style={{ flexDirection: 'column', marginTop: 20 }}>
                                 <TouchableHighlight style={styles.waterMarkModel} onPress={() => this.uploadWithWaterMark(this.state.fileResponse)}>
                                     <Text style={{ color: 'white', }}>With Watermark</Text>
                                 </TouchableHighlight>
@@ -1149,65 +1344,167 @@ class ChatScreen extends React.Component {
                         {/*All views of Modal*/}
                         <View style={{ flexDirection: 'column', padding: 20, alignContent: 'center', alignSelf: 'center' }}>
                             <View>
-                                <Image style={{ height: 500, width: 500 }} resizeMode='contain' source={{ uri: this.state.imagePath }} />
+                                <Image style={{ height: 500, width: 500 }} resizeMode={'contain'} source={{ uri: this.state.imagePath }} />
                             </View>
                         </View>
                     </Modal>
                 </View>
-                <ScrollView ref={ref => this._scrollView = ref}
+                <KeyboardAwareScrollView innerRef={ref => this._scrollView = ref} style={{flex:1}}
                     onContentSizeChange={(contentWidth, contentHeight) => {
+                        eventRead(this.props.navigation.state.params.user.conversation_id, this.props.token)
                         this.state.scroll ? null : this._scrollView.scrollToEnd({ animated: true });
-                    }}>
+                    }}
+                >
                     <View>
                         {this.state.messages.length >= 15 ? <View style={{ alignItems: 'center' }}>
-                            <TouchableHighlight style={{ height: 40, width: 100, backgroundColor: '#10A2EF', marginTop: 15, alignItems: 'center', borderRadius: 10 }} onPress={() => { this.loadMoreMessages(15) }}>
-                                <Text style={{ color: 'white', fontSize: 14, fontWeight: 'bold', alignSelf: 'center', marginTop: 8 }}>Load More</Text>
+                            <TouchableHighlight style={{ height: 35, width: 120, backgroundColor: '#10A2EF', marginTop: 15, alignItems: 'center', borderRadius: 10 }} onPress={() => { this.loadMoreMessages(15) }}>
+                                <Text style={{ color: 'white', fontSize: 15, fontWeight: 'bold', alignSelf: 'center', marginTop: 8 }}>Load More...</Text>
                             </TouchableHighlight>
                         </View> : null}
                         {this.showMessage()}
                     </View>
-                </ScrollView>
+                </KeyboardAwareScrollView>
                 {
                     !this.state.blocked
                         ?
-                        <KeyboardAvoidingView
+                        <View
                             style={{ borderTopWidth: 1, borderTopColor: '#DDD' }}
-                            behavior="height"
-                            enabled>
+                            // behavior="height"
+                            // enabled
+                            >
                         <>
-                            {this.state.chat_id == this.state.conversation_id && this.state.isTyping == true ? <Image resizeMode='cover' style={{ height: 10, width: 70 }} source={{ uri: 'https://talentsroot.tribital.ml/images/typing.gif' }} /> : <Text></Text>}
-                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                                <TextInput
-                                    style={styles.textInputOFMessage}
-                                    multiline={true}
-                                    onChangeText={(text) => { this.setState({ myMessage: text }) }}
-                                    onFocus={()=>this.scrollToBottom()}
-                                    value={this.state.myMessage}
-                                />
-                                <TouchableOpacity
-                                    style={styles.attachmentStyle}
-                                    onPress={() => { this.uploadFile() }} >
-                                    <Icon name="paperclip" color='#aaa' size={30} style={[{ transform: [{ rotateX: '180deg' }] }]} />
-                                </TouchableOpacity>
-                            </View>
-                            <View>
-                                <View style={{ display: 'flex', flexDirection: 'row', marginHorizontal: 25, marginBottom: 5, justifyContent: 'space-between' }}>
-                                    {this.props.type == 0 ? <TouchableOpacity onPress={() => this.setState({ isVisible: true })}>
-                                        <Text style={{ color: '#10A2EF', fontSize: 15, fontWeight: '700' }}>Custom Offer</Text>
-                                    </TouchableOpacity> : <View></View>}
-                                    <TouchableOpacity onPress={() => this.onSend(this.state.myMessage)}>
-                                        <Text style={{ color: '#10A2EF', fontSize: 15, fontWeight: '700' }}>Send</Text>
+                            {this.state.chat_id == this.state.conversation_id && this.state.isTyping == true ? <Image resizeMode={'cover'} style={{ height: 10, width: 70 }} source={{ uri: 'https://www.talentsroot.com/images/typing.gif' }} /> : <Text></Text>}
+                            <View style={{ flexDirection:'row', marginLeft: (widthPercentageToDP(3))}}>
+                                <View style={{width: (widthPercentageToDP(75))}}>
+                                    <TextInput
+                                        style={styles.textInputOFMessage}
+                                        multiline={true}
+                                        onChangeText={(text) => { 
+                                            eventTyping(this.props.navigation.state.params.user.conversation_id, this.props.token)
+                                            this.setState({ myMessage: text })
+                                        }}
+                                        onFocus={()=>this.scrollToBottom()}
+                                        value={this.state.myMessage}
+                                    />
+                                    <TouchableOpacity
+                                        style={styles.attachmentStyle}
+                                        onPress={() => { this.uploadFile() }} >
+                                        <FontAwesome name="paperclip" color='#aaa' size={30} style={[{ transform: [{ rotateX: '180deg' }] }]} />
                                     </TouchableOpacity>
                                 </View>
-                            </View></>
-                         </KeyboardAvoidingView>
+                                <View style={{flex:1, flexDirection:'row', alignContent:'space-around', marginLeft: widthPercentageToDP(1), justifyContent:'center',}}>
+                                    <TouchableOpacity style={{justifyContent:'center'}} onPress={() => this.onSend(this.state.myMessage)}>
+                                        <MaterialCommunityIcons name='send-circle' color='#10A2EF' size={30}/>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={()=>this.setState({isvoiceRecord:true})} style={{justifyContent:'center'}}>
+                                        <MaterialCommunityIcons name='microphone' color='#10A2EF' size={30}/>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                            <View>
+                                <View style={{ display: 'flex', marginHorizontal: 25, marginBottom: 5, justifyContent: 'space-between', alignItems: 'center' }}>
+                                    {this.props.type == 0 && 
+                                    // <TouchableOpacity onPress={() => this.setState({ isVisible: true })}>
+                                    //     <Text style={{ color: '#10A2EF', fontSize: 15, fontWeight: '700' }}>Custom Offer</Text>
+                                    // </TouchableOpacity> : <View></View>}
+                                    <TouchableOpacity style={{alignItems:'center'}} onPress={() => this.setState({isVisible: true})}>
+                                        <Text style={{ color: '#10A2EF', fontSize: 15, fontWeight: '700', textAlign:'center' }}>Send Custom Offer</Text>
+                                    </TouchableOpacity>
+                                    }
+                                </View>
+                            </View>
+                        </>
+                         </View>
                         :
                         <View style={{ alignItems: 'center', alignSelf: 'center' }}>
                             <Text style={{ color: 'red', fontSize: 20 }}>You have blocked this user</Text>
                         </View>
                 }
-
-            </View>
+                <View style={styles.popupModal}>
+                    <Dialog
+                        visible={this.state.customOfferVisible}
+                        onTouchOutside={() => this.setState({customOfferVisible: false})}
+                    >
+                        <View style={{width: 350}}>
+                            <Text style={{fontSize: 24, marginVertical: 15, marginHorizontal: 10}}>
+                                Custom Offer
+                            </Text>
+                            <View style={{alignSelf:'center',borderBottomColor:'#CDCCCB',borderBottomWidth:1,width:'100%'}}/>
+                            <TouchableOpacity style={{flexDirection: 'row', marginVertical: 7}} onPress={() => this.setState({isTouch:true})}>
+                                <Image style={{ height: 100, width: 100, borderRadius: 10, marginHorizontal:10 }} source={{ uri: this.props.profile }} />
+                                <View style={{justifyContent:'center'}}>
+                                    <Text style={{textAlign:'center'}}>
+                                        I am a react native expert
+                                    </Text>
+                                </View>
+                            </TouchableOpacity>                           
+                            <View style={{
+                                borderStyle: 'dotted',
+                                borderWidth: 1,
+                                borderRadius: 1,
+                                borderColor: '#CDCCCB'
+                            }}/>
+                            <View style={{flexDirection:'row', justifyContent: 'flex-end', marginHorizontal: 10, marginVertical: 20}}>
+                                <TouchableOpacity onPress={this.customOffer} style={{backgroundColor: '#2ec09c', borderRadius: 5, marginRight: 10}}>
+                                    <Text style={{paddingHorizontal: 20, paddingVertical: 10, color: '#FFF', fontSize: 16}}>
+                                        Send
+                                    </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => this.setState({customOfferVisible: false})} style={{backgroundColor: '#ff6060',borderRadius: 5}}>
+                                    <Text style={{paddingHorizontal: 20, paddingVertical: 10, color: '#FFF', fontSize: 16}}>
+                                        Cancel
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </Dialog>
+               
+                <Dialog
+                    visible={this.state.isvoiceRecord}
+                    onTouchOutside={() => this.setState({isvoiceRecord: false})}
+                    >
+                    <View style={{width: 350, height: 200}}>
+                        <Text style={{textAlign:'center', fontSize: 16, marginVertical: 30, marginHorizontal: 10}}>
+                            All voice messages are monitored. Any abuse for ToS like sharing contact detail will cause your account to be suspended immediately.
+                        </Text>
+                        <View style={{flexDirection:'row', justifyContent: 'center', marginHorizontal: 10, marginBottom: 15}}>
+                            <TouchableOpacity onPress={this.recordStart} style={{backgroundColor: '#10a2ef', borderRadius: 5, marginRight: 10}}>
+                                <Text style={{paddingHorizontal: 20, paddingVertical: 10, color: '#FFF', fontSize: 16}}>
+                                    START
+                                </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => this.setState({isvoiceRecord: false})} style={{backgroundColor: '#ff6060',borderRadius: 5}}>
+                                <Text style={{paddingHorizontal: 20, paddingVertical: 10, color: '#FFF',  fontSize: 16}}>
+                                    CANCEL
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </Dialog>
+                <Dialog
+                    visible={this.state.isvoiceSend}
+                    onTouchOutside={() => this.setState({isvoiceSend: false})}
+                    >
+                    <View style={{width: 350, height: 200}}>
+                        <Text style={{textAlign:'center', fontSize: 24, marginVertical: 40, marginHorizontal: 10}}>
+                            Confirm
+                        </Text>
+                        <View style={{flexDirection:'row', justifyContent: 'center', marginHorizontal: 10, marginBottom: 15}}>
+                            <TouchableOpacity onPress={this.voiceSend} style={{backgroundColor: '#10a2ef', borderRadius: 5, marginRight: 10}}>
+                                <Text style={{paddingHorizontal: 20, paddingVertical: 10, color: '#FFF', fontSize: 16}}>
+                                    Send
+                                </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => this.setState({isvoiceSend: false})} style={{backgroundColor: '#ff6060',borderRadius: 5}}>
+                                <Text style={{paddingHorizontal: 20, paddingVertical: 10, color: '#FFF',  fontSize: 16}}>
+                                    CANCEL
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </Dialog>
+                </View>
+            </KeyboardAvoidingView>
         )
     }
 }
@@ -1216,6 +1513,7 @@ const mapStateToProps = state => {
         type: state.LoginUser.type,
         token: state.LoginUser.userToken,
         profile: state.LoginUser.profile,
+        profileData: state.userProfile.profiledata,
         id: state.LoginUser.user_id,
         review: state.addRoot,
         regex: state.getRegex
@@ -1225,8 +1523,8 @@ const mapStateToProps = state => {
 const styles = StyleSheet.create({
     mainContainer: {
         flex: 1,
-        justifyContent: 'space-between',
-        flexDirection: 'column',
+        // justifyContent: 'space-between',
+        // flexDirection: 'column',
     },
     header_container: {
         height: heightPercentageToDP(9),
@@ -1258,7 +1556,10 @@ const styles = StyleSheet.create({
     },
     attachmentStyle: {
         position: 'absolute',
-        right: widthPercentageToDP(8)
+        justifyContent: 'center',
+        top: 0,
+        bottom: 0,
+        left: widthPercentageToDP(3)
     },
     input: {
         paddingLeft: 15,
@@ -1288,13 +1589,16 @@ const styles = StyleSheet.create({
     },
     user_name: {
         marginLeft: 5,
-        fontSize: moderateScale(15),
+        fontSize: moderateScale(16),
+        fontWeight: 'bold',
         color: '#10A2EF',
     },
     picker: {
         borderWidth: 1,
         borderColor: '#DDD',
         borderRadius: 5,
+        height: 50,
+        marginHorizontal: 10,
         justifyContent: 'center',
         alignContent: 'center',
     },
@@ -1312,9 +1616,10 @@ const styles = StyleSheet.create({
     },
     textInputOFMessage: {
         fontSize: 14,
-        width: (widthPercentageToDP(90)),
         backgroundColor: "#F1F2F4",
         borderRadius: 10,
+        paddingLeft: widthPercentageToDP(12)
+        // marginLeft: widthPercentageToDP(3)
     },
     sendButton: {
         borderWidth: 1,
@@ -1464,6 +1769,10 @@ const styles = StyleSheet.create({
         left: 0,
         bottom: 0,
         right: 0,
+    },
+    popupModal : {
+        position:'absolute',
+        top: 10,
     }
 });
 export default connect(mapStateToProps)(ChatScreen);

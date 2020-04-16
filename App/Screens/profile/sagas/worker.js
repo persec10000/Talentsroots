@@ -1,15 +1,14 @@
 import {call, put} from 'redux-saga/effects';
 import * as types from '../actions';
-import {profile_service, edit_profile} from '../../../services/profile'
+import {profile_service, edit_profile, user_profile_service} from '../../../services/profile'
 
 
 
 
 export function* profile(action) {
   try {
-    console.log('action',action)
     const response = yield call(profile_service, action.payload);
-    
+    console.log('action',response)
      if (response.status == 1) {
       let profile = response.data;
       
@@ -23,15 +22,15 @@ export function* profile(action) {
 }
 
 
-export function* editProfile(payload) {
-  console.log('Worker edit', payload)
+export function* editProfile(action) {
+  console.log('Worker edit', action)
   try {
-    
-    const response = yield call(edit_profile, payload);
+    const response = yield call(profile_service, action.payload);
     console.log('response', response)
      if (response.status == 1) {
-      console.log('success')
-      yield put({type: types.EDIT_PROFILE_SUCCESS});
+      let profile = response.data;
+      yield put({type: types.EDIT_PROFILE_SUCCESS, profile});
+      yield put({type: types.PROFILE_COMPLETE});
     } else {
       console.log('failure')
       yield put({type: types.EDIT_PROFILE_FAILURE});

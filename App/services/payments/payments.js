@@ -66,9 +66,9 @@ export const paymentClearance = async (token) => {
 //       passedRootDetails.r_id,
 
 export const getPaymentHTML = async (token, user_id, days, finalPrice, usedBalance, processingFees, r_id, o_id, packagePrice) => {
-  console.log(`https://talentsroot.tribital.ml/api_v1/order/hyperpay?api-key="B3vWg8qq4k2!9qePMh*U&Cu&tbPJ$Fywnk^5LYFUprx9BAetDk5"&auth-token=${token}&Content-Type=application/x-www-form-urlencoded&user_id=${user_id}&deliveryDay=${days}&finalprice=${finalPrice}&usedBalance=${usedBalance}&processingPrice=${processingFees}&r_id=${r_id}&price=${finalPrice}`)
+  console.log(`https://www.talentsroot.com/api_v1/order/hyperpay?api-key="B3vWg8qq4k2!9qePMh*U&Cu&tbPJ$Fywnk^5LYFUprx9BAetDk5"&auth-token=${token}&Content-Type=application/x-www-form-urlencoded&user_id=${user_id}&deliveryDay=${days}&finalprice=${finalPrice}&usedBalance=${usedBalance}&processingPrice=${processingFees}&r_id=${r_id}&price=${finalPrice}`)
   return await fetch(
-    `https://talentsroot.tribital.ml/api_v1/order/hyperpay?api-key="B3vWg8qq4k2!9qePMh*U&Cu&tbPJ$Fywnk^5LYFUprx9BAetDk5"&auth-token=${token}&Content-Type=application/x-www-form-urlencoded&user_id=${user_id}&packagePrice=${packagePrice}&deliveryDay=${days}&orderID=${o_id}&finalprice=${finalPrice}&usedBalance=${usedBalance}&processingPrice=${processingFees}&r_id=${r_id}&price=${finalPrice}`, {
+    `https://www.talentsroot.com/api_v1/order/hyperpay?api-key="B3vWg8qq4k2!9qePMh*U&Cu&tbPJ$Fywnk^5LYFUprx9BAetDk5"&auth-token=${token}&Content-Type=application/x-www-form-urlencoded&user_id=${user_id}&packagePrice=${packagePrice}&deliveryDay=${days}&orderID=${o_id}&finalprice=${finalPrice}&usedBalance=${usedBalance}&processingPrice=${processingFees}&r_id=${r_id}&price=${finalPrice}`, {
     method: "GET",
     headers: {
       'api-key': 'B3vWg8qq4k2!9qePMh*U&Cu&tbPJ$Fywnk^5LYFUprx9BAetDk5',

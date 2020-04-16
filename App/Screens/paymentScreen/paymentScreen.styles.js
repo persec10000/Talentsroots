@@ -29,8 +29,7 @@ export default StyleSheet.create({
     ImageStyle : { 
         width : width - width / 10,
         height : height / 4,
-        borderRadius: 5 ,
-        resizeMode:'contain',
+        borderRadius: 5 
     }, 
     CardTitleStyle : {
         fontSize : 14,
@@ -132,8 +131,7 @@ export default StyleSheet.create({
     },
     securityImageStyle : { 
         width : width - width / 3.5 , 
-        alignSelf : 'center' ,  
-        resizeMode: 'contain' 
+        alignSelf : 'center'
     },
     cardView: {
         width: Dimensions.get('window').width / 1.2,

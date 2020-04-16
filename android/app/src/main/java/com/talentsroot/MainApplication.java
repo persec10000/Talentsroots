@@ -1,20 +1,20 @@
 package com.talentsroot;
 
 import android.app.Application;
-import android.util.Log;
+import android.content.Intent;
+import android.os.Bundle;
 
 import com.facebook.react.PackageList;
-import com.facebook.hermes.reactexecutor.HermesExecutorFactory;
-import com.facebook.react.bridge.JavaScriptExecutorFactory;
 import com.facebook.react.ReactApplication;
-import io.invertase.firebase.RNFirebasePackage;
-import com.rnfs.RNFSPackage;
+import com.rntimezone.RNReactNativeTimezonePackage;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.soloader.SoLoader;
+
+import java.util.List;
+
 import io.invertase.firebase.messaging.RNFirebaseMessagingPackage;
 import io.invertase.firebase.notifications.RNFirebaseNotificationsPackage;
-import java.util.List;
 
 public class MainApplication extends Application implements ReactApplication {
 
@@ -28,6 +28,7 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       @SuppressWarnings("UnnecessaryLocalVariable")
       List<ReactPackage> packages = new PackageList(this).getPackages();
+      //  packages.add(new RNFirebasePackage());
        packages.add(new RNFirebaseMessagingPackage());
        packages.add(new RNFirebaseNotificationsPackage());
       return packages;
@@ -50,5 +51,8 @@ public class MainApplication extends Application implements ReactApplication {
   public void onCreate() {
     super.onCreate();
     SoLoader.init(this, /* native exopackage */ false);
+    Intent service = new Intent(getApplicationContext(), BackPushEventService.class);
+    getApplicationContext().startService(service);
   }
+
 }

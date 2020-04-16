@@ -11,12 +11,14 @@ import {
   Image,
   Picker,
   Alert,
+  Dimensions
 } from 'react-native';
 import ImagePicker from 'react-native-image-picker';
 import { connect } from 'react-redux';
-
+import {AutoGrowingTextInput} from 'react-native-autogrow-textinput';
 import { editprofilerequest } from '../actions/actions';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import TagInput from 'react-native-tags-input'
 import config from '../../../config';
 import {
   edit_profile
@@ -31,7 +33,6 @@ const Imageoptions = {
   quality: 1,
   mediaType: 'photo',
 };
-
 class Account extends Component {
   constructor(props) {
     super(props);
@@ -53,18 +54,31 @@ class Account extends Component {
       countryList: [],
       LanguageList: [],
       timezoneList: [],
-      skills: this.props.profileData.skills ? this.props.profileData.skills : '',
-      type: this.props.type
+      skills: this.props.profileData.skills ? this.props.profileData.skills[0] : '',
+      type: this.props.type,
+      textLength: this.props.profileData.description ? this.props.profileData.description.length:'',
+      tags: {
+        tag: '',
+        tagsArray: this.props.profileData.skills? this.props.profileData.skills: []
+      },
+      tagsColor: '#3ca897',
+      tagsText: '#fff',
     }),
     this.getCountry();
     this.getLanguage();
     this.getTimezone();
   }
   changeHandler = (key, value) => {
+    if ([key] == 'skills'){
+      this.setState({skills: this.props.profileData.skills[0]+value})
+    }
     this.setState({
       [key]: value,
     });
   };
+  changeSkill = (text) => {
+
+  }
   handleCountry = (key, value) => {
     this.setState({
       [key]: value,
@@ -195,6 +209,7 @@ class Account extends Component {
       })
       .then(json => {
         if (json.status == 1) {
+          console.log("timezonelist=======",json.data)
           this.setState({
             timezoneList: json.data,
           });
@@ -245,27 +260,31 @@ class Account extends Component {
         const thumbnailName = { uri: response.fileName };
 
         this.setState({
-          profileImage: response.uri,
+          profileImage: 'file://'+response.path,
         });
       }
     });
   };
 
   render() {
-    console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",this.props.profileData)
+    let skill = ''
+    this.props.profileData.skills.map((item) => {
+      skill = skill.concat(item);
+    })
+    console.log("taggggggggggggg",this.state.tags.tagsArray)
     return (
       <View style={{ paddingVertical: 10 }}>
         <View style={{ flexDirection: 'row' }}>
           <View style={styles.profileImage}>
             {this.state.profileImage ? (
               <Image
-                resizeMode='cover'
+                resizeMode={'cover'}
                 style={{ height: null, width: null, flex: 1 }}
                 source={{ uri: this.state.profileImage }}
               />
             ) : (
                 <Image
-                  resizeMode='cover'
+                  resizeMode={'cover'}
                   style={{ height: null, width: null, flex: 1 }}
                   source={{ uri: this.props.profileData.profile }}
                 />
@@ -294,6 +313,7 @@ class Account extends Component {
         <TextInput
           onChangeText={text => this.changeHandler('username', text)}
           value={this.state.username}
+          editable={this.props.profileData.name ? false : true}
           placeholder="User Name"
           style={styles.input}
         /> : null}
@@ -323,10 +343,14 @@ class Account extends Component {
               onValueChange={text => {
                 this.handleCountry('country', text);
               }}>
-              {this.state.countryList &&
-                this.state.countryList.map((item, index) => (
-                  <Picker.Item key={index} label={item.cnt_name} value={item.cnt_code} />
-                ))}
+                {this.props.profileData.country !== null?
+                  <Picker.Item key={this.props.profileData.country} label={this.props.profileData.country} />
+                  :
+                  this.state.countryList.length > 0 &&
+                    this.state.countryList.map((item, index) => (
+                      <Picker.Item key={index} label={item.cnt_name} value={item.cnt_code} />
+                  ))
+                }
             </Picker>
           </View>
         </View>
@@ -339,10 +363,15 @@ class Account extends Component {
               onValueChange={text => {
                 this.handleTimezone('timezone', text);
               }}>
-              {this.state.timezoneList &&
-                this.state.timezoneList.map((item, index) => (
-                  <Picker.Item key={index} label={item.name} value={item.name} />
-                ))}
+                {this.props.profileData.timezone !== null?
+                  <Picker.Item key={this.props.profileData.timezone} label={this.props.profileData.timezone}/>
+                  :
+                  this.state.timezoneList &&
+                    this.state.timezoneList.map((item, index) => (
+                      <Picker.Item key={index} label={item.name} value={item.name} />
+                    ))
+                }
+
             </Picker>
           </View>
         </View>
@@ -394,20 +423,33 @@ class Account extends Component {
           style={styles.input}
         />
         {this.props.type == 0 ?
+        <ScrollView style={styles.inputdesc}>
           <TextInput
-            onChangeText={text => this.changeHandler('profileDesc', text)}
+            onChangeText={text => {this.changeHandler('profileDesc', text), this.setState({textLength:text.length})}}
             value={this.state.profileDesc}
             placeholder="Profile Description"
+            maxLength={2500}
             multiline={true}
-            style={styles.input}
-          /> : <></>}
-       {this.props.type == 0 ? <TextInput
-          onChangeText={text => this.changeHandler('skills', text)}
-          value={this.state.skills}
-          placeholder="Add your skills"
-          style={styles.input}
-        /> : <></>}
-
+            // style={styles.input}
+          /> 
+        </ScrollView>: <></>}
+      <View style={{marginLeft:3}}>
+        <Text>{this.state.textLength} / 2500 Characters</Text>
+      </View>
+       {this.props.type == 0 ? 
+        <TagInput
+          updateState={(state) => this.setState({tags:state})}
+          tags={this.state.tags}
+          placeholder="Skills: Separate by space"
+          labelStyle={{color: '#fff', fontSize:12}}
+          containerStyle={{paddingHorizontal: 0}}
+          inputStyle={[styles.textInput, {marginLeft: 0, marginRight:0, fontSize:14}]}
+          tagStyle={styles.tag}
+          tagTextStyle={styles.tagText}
+          // keysForTag={', '}
+          />
+        :
+        <></>}
         <TouchableOpacity
           style={styles.buttonContainer}
           onPress={() => this.onSubmit()}>
@@ -429,8 +471,8 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    callEditProfileRequest: (data, token) => {
-      dispatch(editprofilerequest(data, token));
+    callEditProfileRequest: (token, id) => {
+      dispatch(editprofilerequest(token, id));
     },
     callProfileRequest: (token,id) => {
       dispatch(profilerequest(token,id));
@@ -466,11 +508,19 @@ const styles = StyleSheet.create({
     color: '#10A2EF',
   },
   input: {
-    paddingLeft: 15,
+    paddingLeft: 15,  
     borderWidth: 1,
     marginVertical: '2%',
     borderColor: '#E0E6EE',
     borderRadius: 4,
+  },
+  inputdesc: {
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    marginVertical: '2%',
+    borderColor: '#E0E6EE',
+    borderRadius: 4,
+    height: 200
   },
   buttonContainer: {
     marginTop: 20,
@@ -500,4 +550,17 @@ const styles = StyleSheet.create({
     width: '100%',
     // fontFamily: "AvertaBold"
   },
+  textInput: {
+    paddingLeft: 15,  
+    borderWidth: 1,
+    marginVertical: '2%',
+    borderColor: '#E0E6EE',
+    borderRadius: 4,
+  },
+  tag: {
+      backgroundColor: '#fff'
+    },
+  tagText: {
+      color: '#000',
+    },
 });

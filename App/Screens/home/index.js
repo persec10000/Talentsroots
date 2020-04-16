@@ -25,8 +25,7 @@ import RecentlyViewed from './component/recentlyViewed';
 import RecentlyBought from './component/recentlyBought';
 import { get_roots } from '../../services/getRoots';
 import { registerDevice } from '../../services/home/index'
-import SocketIOClient from 'socket.io-client/dist/socket.io';
-const URL = 'https://socket.tribital.ml';
+import firebase  from 'react-native-firebase';
 
 import {
   rootsRequest,
@@ -37,7 +36,8 @@ import { profilerequest } from '../profile/actions/actions';
 
 
 const Home = (props) => {
-  let socket = SocketIOClient(`${URL}?user_id=` + props.userId);
+  const socket = props.screenProps;
+  // let socket = SocketIOClient(`${URL}?user_id=` + props.userId);
   
   const [allRoots, setAllRoots] = useState('');
   const [latestRoots, setLatestRoots] = useState([]);
@@ -98,6 +98,7 @@ const Home = (props) => {
   }, [props.getRoots])
 
   useEffect(() => {
+    console.log("allRoots=======", allRoots)
     if (allRoots) {
       if (allRoots.latest) {
         setLatestRoots(allRoots.latest);
@@ -167,10 +168,22 @@ const Home = (props) => {
       }
     }
   };
-
+  console.log("recentlyViewedRoots====>",recentlyViewedRoots)
   return (
     <DrawerWrapper {...props}>
       <View style={styles.home}>
+        {props.profileData !== null&&
+        <>
+          {
+            (props.login.type == 0 && (props.profileData.first_name == '' || props.profileData.last_name == '' || props.profileData.country == ''|| props.profileData.email == ''|| props.profileData.timezone == '' || props.profileData.description == ''))&&
+            <View style={styles.redbarStyle}>
+              <Text style={styles.redbartextStyle}>
+                Please complete your profile to post a new root
+              </Text>
+            </View>
+          }
+        </>
+        }
         <ScrollView style={styles.homeContainer}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -355,10 +368,10 @@ const mapStateToProps = state => {
     login: state.LoginUser,
     getRoots: state.getRoots,
     token: state.LoginUser.userToken,
+    profileData: state.userProfile.profiledata,
     userId: state.LoginUser.user_id,
   };
 };
-
 const Main = connect(mapStateToProps)(Home);
 
 export default Main;

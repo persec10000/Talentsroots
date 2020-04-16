@@ -58,7 +58,7 @@ class MySales extends React.Component {
       return (
         <View style={styles.cardView}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', alignContent: 'flex-start', padding: 10 }}>
-            <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: 'https://cdn.talentsroot.com/upload_staging/profile/' + item.profile }} />
+            <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: 'https://cdn.talentsroot.com/upload/profile/' + item.profile }} />
             <View style={item.is_online == 1 ? styles.isOnline : styles.isOffline}></View>
             <Text>{item.name}</Text>
           </View>
@@ -89,7 +89,7 @@ class MySales extends React.Component {
       return (
         <View style={styles.cardView}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', alignContent: 'flex-start', padding: 10 }}>
-            <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: 'https://cdn.talentsroot.com/upload_staging/profile/' + item.profile }} />
+            <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: 'https://cdn.talentsroot.com/upload/profile/' + item.profile }} />
             <View style={item.is_online == 1 ? styles.isOnline : styles.isOffline}></View>
             <Text>{item.name}</Text>
           </View>
@@ -128,7 +128,7 @@ class MySales extends React.Component {
       return (
         <View style={styles.cardView}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', alignContent: 'flex-start', padding: 10 }}>
-            <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: 'https://cdn.talentsroot.com/upload_staging/profile/' + item.profile }} />
+            <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: 'https://cdn.talentsroot.com/upload/profile/' + item.profile }} />
             <View style={item.is_online == 1 ? styles.isOnline : styles.isOffline}></View>
             <Text>{item.name}</Text>
           </View>
@@ -159,7 +159,7 @@ class MySales extends React.Component {
       return (
         <View style={styles.cardView}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', alignContent: 'flex-start', padding: 10 }}>
-            <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: 'https://cdn.talentsroot.com/upload_staging/profile/' + item.profile }} />
+            <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: 'https://cdn.talentsroot.com/upload/profile/' + item.profile }} />
             <View style={item.is_online == 1 ? styles.isOnline : styles.isOffline}></View>
             <Text>{item.name}</Text>
           </View>
@@ -198,7 +198,7 @@ class MySales extends React.Component {
       return (
         <View style={styles.cardView}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', alignContent: 'flex-start', padding: 10 }}>
-            <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: 'https://cdn.talentsroot.com/upload_staging/profile/' + item.profile }} />
+            <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: 'https://cdn.talentsroot.com/upload/profile/' + item.profile }} />
             <View style={item.is_online == 1 ? styles.isOnline : styles.isOffline}></View>
             <Text>{item.name}</Text>
           </View>

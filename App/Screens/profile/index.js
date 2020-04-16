@@ -144,7 +144,6 @@ class Profile extends Component {
 };
 
 const mapStateToProps = state => {
-  console.log('state in profile screen',state)
   return {
     token: state.LoginUser.userToken,
     user_id : state.LoginUser.user_id,

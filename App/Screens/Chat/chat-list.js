@@ -8,29 +8,32 @@ import {
     Image,
     Picker,
     TextInput,
+    TouchableHighlight,
+    TouchableOpacity,
     ActivityIndicator
 } from 'react-native';
 import { connect } from 'react-redux';
 import { NavigationEvents } from "react-navigation";
 import '../../services/ChatList'
 import { getPreviousChats, loadMorePreviousChats } from '../../services/ChatList';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import {profile_service} from '../../services/profile';
+// import { TouchableOpacity } from 'react-native-gesture-handler';
 import SocketIOClient from 'socket.io-client/dist/socket.io';
 import DrawerWrapper from '../../commons/rightDrawerWrapper';
 import Icon from "react-native-vector-icons/FontAwesome";
 import { scale, heightPercentageToDP } from '../../commons/responsive_design';
 
-const URL = 'https://socket.tribital.ml';
 // const URL = 'https://socket.lembits.in';
 
+let offsetNum = 30;
 const ChatList = (props) => {
-
     const [chats, setChats] = useState([]);
     const [typing, setTyping] = useState(false)
     const [item, setItem] = useState('all');
     const [newMessage, setNewMessage] = useState(false)
     const [old_chats, setOldChats] = useState();
     const [counter, setCounter] = useState(1);
+    const [userProfile, setUserProfile] = useState(null);
 
     const getChats = async (type) => {
         setItem(type)
@@ -107,6 +110,7 @@ const ChatList = (props) => {
         })
     }, [chats])
 
+    
     useEffect(() => {
         getChats('')
     }, [props.token])
@@ -130,8 +134,9 @@ const ChatList = (props) => {
         }
     }
 
-    removeNewMessage = (itemMsg) => {
-        props.navigation.navigate('ChatScreen', { 'user': itemMsg })
+    const removeNewMessage = (itemMsg) => {
+        getUserProfile(props.token, itemMsg.id).then(userProfile =>{
+        props.navigation.navigate('ChatScreen', { 'user': itemMsg, 'user_data': userProfile })
         if (itemMsg.newMessage) {
             chats && chats.map((item) => {
                 if (item.id == itemMsg.id) {
@@ -146,16 +151,37 @@ const ChatList = (props) => {
                 }
             })
         }
+        })
+        
     }
-
+    const getUserProfile = async (token, userId) => {
+        const requestData = {
+          token,
+          user_id: userId
+        }
+        const response = await profile_service(requestData);
+        if (response.status === 1) {
+            console.log("response===",response.data)
+            return response.data
+        }
+    }
     loadMoreMessages = async () => {
-        let chats = await loadMorePreviousChats(props.token, '');
-        setChats(chats.data)
-        setOldChats(response.data);
+        let newchats = await loadMorePreviousChats(props.token, '', offsetNum);
+        if (newchats.status == 1){
+            offsetNum = newchats.offset
+        }
+        let newArr = [...chats];
+        let newData = newchats.data
+        let newDataArr = [...newData];
+        console.log("newDataArr",...newDataArr);
+        newArr.push(...newDataArr)
+        setChats(newArr)
+        // setOldChats(response.data);
     }
-
+    
     return (
         <DrawerWrapper {...props}>
+            {console.log('chats=============',chats)}
             <ScrollView >
                 <View
                 style={styles.chatListContainer}
@@ -165,7 +191,7 @@ const ChatList = (props) => {
                             getChats('')
                         }}
                     />
-                    <View>
+                    <ScrollView>
                         <View style={styles.chatListHeader}>
                             <View style={styles.headerPicker}>
                                 <Picker
@@ -190,7 +216,7 @@ const ChatList = (props) => {
                                 <Icon name='search' size={20} color='#7F7F7F' style={{ paddingTop: 10, paddingRight: 5 }} />
                             </View>
                         </View>
-                        {
+                        {   
                             chats && chats.length > 0 ? 
                                 <FlatList
                                     data={chats}
@@ -209,7 +235,9 @@ const ChatList = (props) => {
                                                         <View style={{ marginLeft: 20 }}>
                                                             <Text style={styles.userName}>{item.name}</Text>
                                                             {item.isTyping ? <>
-                                                                <Image resizeMode='contain' style={{ height: 30, width: 100, margin: 0, padding: 0 }} source={{ uri: 'https://talentsroot.tribital.ml/images/typing.gif' }} />
+                                                                <Image 
+                                                                    resizeMode={'contain'}
+                                                                    style={{ height: 30, width: 100, margin: 0, padding: 0 }} source={{ uri: 'https://www.talentsroot.com/images/typing.gif' }} />
                                                             </> : null}
                                                             <View>
                                                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
@@ -250,14 +278,15 @@ const ChatList = (props) => {
                                 : null
                         }
                         {
-                            chats.length > 15 ?
-                            
-                            <TouchableHighlight style={{ height: 40, width: 100, backgroundColor: '#10A2EF', marginTop: 15, alignItems: 'center', borderRadius: 10 }} onPress={() => { this.loadMoreMessages(15) }}>
-                                <Text style={{ color: 'white', fontSize: 14, fontWeight: 'bold', alignSelf: 'center', marginTop: 8 }}>Load More</Text>
-                            </TouchableHighlight>
+                           chats && chats.length > 30 ?
+                            <View style={{alignItems:'center', width: '100%'}}>
+                                <TouchableHighlight style={{ height: 40, width: 100, backgroundColor: '#10A2EF', marginTop: 15, alignItems: 'center', borderRadius: 10 }} onPress={() => { this.loadMoreMessages(15) }}>
+                                    <Text style={{ color: '#000', fontSize: 14, fontWeight: 'bold', alignSelf: 'center', marginTop: 8 }}>Load More</Text>
+                                </TouchableHighlight>
+                            </View>
                             :null
                         }
-                    </View>
+                    </ScrollView>
                 </View>
             </ScrollView>
         </DrawerWrapper>
@@ -267,7 +296,9 @@ const mapStateToProps = state => {
     return {
         token: state.LoginUser.userToken,
         review: state.addRoot,
-        id: state.LoginUser.user_id
+        profileData: state.userProfile.profiledata,
+        id: state.LoginUser.user_id,
+
     };
 };
 const styles = StyleSheet.create({
@@ -285,7 +316,7 @@ const styles = StyleSheet.create({
     chatListContainer:{
         marginTop:scale(5),
         marginHorizontal:scale(7),
-        height:heightPercentageToDP(100),
+        // height:heightPercentageToDP(100),
         borderTopWidth:1,
         borderRightWidth:1,
         borderLeftWidth:1,

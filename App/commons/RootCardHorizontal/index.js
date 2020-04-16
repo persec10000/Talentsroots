@@ -5,11 +5,13 @@ import { connect } from 'react-redux';
 import styles from './index.style';
 RootCardHorizontal = props => {
   return (
-    <TouchableOpacity onPress={() => props.navigation.navigate('RootPage', {
+    <TouchableOpacity 
+    onPress={() => props.navigation.navigate('RootPage', {
       token: props.token,
       root_id: props.r_id,
       user_id: props.r_user_id
-    })}>
+    })}
+    >
         <View style={styles.headerViewStyle}>
           <Image style={styles.headerImageStyle} source={{ uri: props.r_root_image }} />
           <Text numberOfLines={3} style={styles.headerTitleStyle}>

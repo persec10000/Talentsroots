@@ -1,14 +1,17 @@
 import { notifications } from "react-native-firebase"
-// const server = 'www.talentsroot.com'
-const server = 'https://talentsroot.tribital.ml/api_v1/'
+const server = 'https://www.talentsroot.com/api_v1/'
+// const server = 'https://talentsroot.tribital.ml/api_v1/'
 // const server ='https://talentsroot.lembits.in/api_v1/'
 
 const config = {
     register: server + 'register',
     login: server + 'login',
+    logout: server + 'logout',
     registerFCM: server + 'register-device',
     facebookLogin: server + 'facebook-login',
     facebookRegister: server + 'facebook-register',
+    googleLogin: server + 'google-login',
+    googleRegister: server + 'google-register',
     home: server + 'home/dashboard',
     profile: server + 'user/profile',
     userProfile: server + 'root/user-profile',
@@ -20,6 +23,7 @@ const config = {
     mysales: server + 'order/sales-list',
     userBalance: server + 'user/get-balance',
     myReviews: server + 'reviews/received',
+    userReviews: server + 'reviews/user-reviews',
     awardedReviews: server + 'reviews/awarded',
     pendigReviews: server + 'reviews/pending',
     categories: server + 'home/categories',
@@ -55,6 +59,8 @@ const config = {
     checkout: server + 'order/checkout',
     change_password: server + 'user/change-password',
     chat_list: server + 'chat/chat-list',
+    chat_eventread: server + 'chat/event-read',
+    chat_eventtyping: server + 'chat/event-typing',
     conversation: server + 'chat/conversation',
     conversation_list: server + 'chat/conversation-list',
     send_message: server + 'chat/send',
@@ -67,7 +73,6 @@ const config = {
     myFavorites: server + 'root/favorites',
     removeFavorites: server + 'root/remove-favorites',
     addFavorites: server + 'root/add-favorites',
-    userReviews: server + 'reviews/user-reviews',
     orderHistory: server + 'order/history',
     deleteFileInRequest: server + 'requests/delete-file',
     customOfferReject: server + 'chat/custom-offer-action',
@@ -75,7 +80,6 @@ const config = {
     reportThis: server + 'root/report',
     rootAction: server + 'root/action',
     deleteFileInRequest: server + 'requests/delete-file',
-    customOfferReject: server + 'chat/custom-offer-action',
     getRegex: server + 'chat/word-filter',
     reportThis: server + 'root/report',
     rootAction: server + 'root/action',

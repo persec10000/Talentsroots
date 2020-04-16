@@ -10,9 +10,9 @@ export const profilerequest = (token,user_id) => {
     }
 }
 
-export const editprofilerequest = (data, token) => {
+export const editprofilerequest = (token,user_id) => {
     return{
         type:types.EDIT_PROFILE_REQUEST,
-        payload: {data, token}
+        payload: {token, user_id}
     }
 }

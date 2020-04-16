@@ -3,8 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Dimensions, StyleSheet, ScrollView, AsyncStorage, Switch, Image, TouchableOpacity, Picker, Alert } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Modal from "react-native-modal";
-import { start_vacation } from '../../services/home/index'
-import { getUserBalance } from '../../services/home/index'
+import { start_vacation } from '../../services/home/index';
+import { getUserBalance } from '../../services/home/index';
+import {log_out} from '../../services/auth/index';
 import { connect } from 'react-redux';
 
 const LeftDrawer = (props) => {
@@ -19,11 +20,19 @@ const LeftDrawer = (props) => {
   const [balance, setBalance] = useState('')
 
   const logout = async () => {
-    await AsyncStorage.removeItem('username');
-    await AsyncStorage.removeItem('password');
-    await AsyncStorage.removeItem('device_id');
-    await props.dispatch({ type: 'LOGOUT_REQUEST' });
-    await props.navigation.navigate('Auth');
+    deviceToken = await AsyncStorage.getItem('device_id');
+    let response = await log_out(props.login.userToken, deviceToken)
+    console.log("response======>",response)
+    console.log('isonline===========>',props.profileData)
+    console.log("socket========================>",props.screenProps);
+    if (response.status == 1){ 
+      await AsyncStorage.removeItem('username');
+      await AsyncStorage.removeItem('password');
+      await AsyncStorage.removeItem('device_id');
+      props.screenProps.disconnect(true);
+      await props.dispatch({ type: 'LOGOUT_REQUEST' });
+      await props.navigation.navigate('Auth');  
+    } 
   };
 
   const startVacation = async (reason, date) => {
@@ -150,10 +159,12 @@ const LeftDrawer = (props) => {
                 borderRadius: 16,
                 overflow: 'hidden',
               }}>
+              {props.profileData !== null&&
               <Image
                 style={{ height: null, width: null, flex: 1 }}
-                source={props.login.profile ? { uri: props.login.profile } : require('../../assets/icons/account.png')}
+                source={props.profileData.profile ? { uri: props.profileData.profile } : require('../../assets/icons/account.png')}
               />
+              }
             </View>
             <View style={{ marginLeft: 12, flexDirection: 'column' }}>
               <Text style={{ fontSize: 12 }}>{props.login.name}</Text>
@@ -205,7 +216,17 @@ const LeftDrawer = (props) => {
         { 
           props.login.type === 0 ?
           <TouchableOpacity
-            onPress={() => props.navigation.navigate('MyRoots')}
+            onPress={() => 
+              props.profileData !== null&&
+              <>
+                {
+                  (props.profileData.first_name == '' || props.profileData.last_name == '' || props.profileData.country == ''|| props.profileData.email == ''|| props.profileData.timezone == '' || props.profileData.description == '')?
+                  props.navigation.navigate('EditProfile')
+                  :
+                  props.navigation.navigate('MyRoots')
+                }
+              </>
+            }
             style={styles.drawerIconViewStyle}>
             <Image
               style={styles.drawerIconStyle}
@@ -336,6 +357,7 @@ const LeftDrawer = (props) => {
 const mapStateToProps = state => {
   return {
     login: state.LoginUser,
+    profileData: state.userProfile.profiledata,
   };
 };
 const leftDrawer = connect(

@@ -16,8 +16,7 @@ export default StyleSheet.create({
   headerImageStyle: {
     height: 70,
     width: 100,
-    borderRadius: 15,
-    resizeMode: 'contain'
+    borderRadius: 15
   },
   headerTitleStyle: {
     flex: 1,

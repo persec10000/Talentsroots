@@ -104,7 +104,9 @@ class BuyersRequests extends React.Component {
               return (
                 <>
                   <View key={index} style={{ flexDirection: 'row', padding: 5, borderBottomColor: '#7F7F7F', borderBottomWidth: 1  }}>
-                    <Image style={{ height: 50, width: 70 }} resizeMode="contain" source={{ uri: item.r_root_image }} />
+                    <Image style={{ height: 50, width: 70 }} 
+                            resizeMode={'contain'}
+                            source={{ uri: item.r_root_image }} />
                     <View style={{ flexDirection: 'row', width: 150, flexWrap: 'wrap', marginLeft: 5 }}>
                       <TouchableOpacity onPress={() => { this.setState({ isSecondModalVisible: true, selectedOffer: item, isVisible: false }) }}>
                         <Text style={{ fontSize: 15, color: '#10A2EF', marginLeft: 5 }}>{item.r_title}</Text>
@@ -306,7 +308,7 @@ class BuyersRequests extends React.Component {
                               <Text>{this.state.selectedOffer.r_title}</Text>
                             </View>
                             <View style={styles.paddingModal}>
-                              <Image resizeMode="contain" style={{ height: 100, width: 100 }} source={{ uri: this.state.selectedOffer.r_root_image }} />
+                              <Image resizeMode={'contain'} style={{ height: 100, width: 100 }} source={{ uri: this.state.selectedOffer.r_root_image }} />
                             </View>
                             <View style={styles.paddingModal}>
                               <TextInput

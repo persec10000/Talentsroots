@@ -119,7 +119,7 @@ const PaymentScreen = (props) => {
 
   const checkUrlState = (url) => {
     console.log("======>>>>>>", url)
-    if (url.includes('https://talentsroot.tribital.ml/order/return')) {
+    if (url.includes('https://www.talentsroot.com/order/return')) {
       setHyperPay(false)
       props.navigation.navigate('OrderDetails', { orderDetails: item })
     }
@@ -169,6 +169,7 @@ const PaymentScreen = (props) => {
                   <View style={styles.ImageViewStyle}>
                     <Image
                       style={styles.ImageStyle}
+                      resizeMode={'contain'}
                       source={{uri:passedRootDetails.r_image}}
                     />
                   </View>
@@ -247,6 +248,7 @@ const PaymentScreen = (props) => {
                 </View>
                 <Image
                   style={styles.securityImageStyle}
+                  resizeMode={'contain'}
                   source={require('../../assets/images/secureText.png')}
                 />
                 {

@@ -11,26 +11,41 @@ import { MenuProvider } from 'react-native-popup-menu';
 import firebase  from 'react-native-firebase';
 import { connect } from 'react-redux';
 import AppStarter from './App/navigation'
-
-
+import TimeZone from 'react-native-timezone';
 const App = (props) => {
   useEffect(() => {
-    checkPermission();
-    createNotificationListeners();
-    
-  }, [props])
-  
-  
-  let socket = SocketIOClient('https://socket.tribital.ml?user_id=' + props.id);
-  socket.on('connect', () => {
-      console.log('connected in app at https://socket.tribital.ml?user_id=' + props.id)
-  });
+    getTimeZone = async() => {
+      const timeZone = await TimeZone.getTimeZone().then(zone => zone);
+      console.log("timezone====",Intl.DateTimeFormat().resolvedOptions().timeZone)
+    }
+    getTimeZone()
+    this.checkPermission();
+    this.messageListener();
+    async function fetchData() {
+      await AsyncStorage.getItem("FCM.BG_MESSAGE")
+    }
+    fetchData()   
+    .then(jsonData => {
+        const data = jsonData ? JSON.parse(jsonData) : false;
+        console.log("dataaaaaaaaaaaaaaaaaa",data);
+        // then do navigation, or whatever you want to the data.
+    }).catch(e => console.log(e));
+    return () => {
+      this.notificationOpenedListener();
+    }
+  }, [])
+    let socket = SocketIOClient('https://socket.talentsroot.com?user_id=' + props.id);
+    // let socket = SocketIOClient('https://socket.tribital.ml?user_id=' + props.id);
+    global.socket = socket;
+    socket.on('disconnect', (res, err) => console.log("result======>",res, err))
+  if (props.id){
+    socket.on('connect', () => {
+        console.log('connected in app at socket.tribital.ml?user_id=' + props.id)
+    });
+    socket.on('connect_error', (err) => { console.log("SOCKET CONNECTION ERR ----", err) })
+  } 
 
-  socket.on('connect_error', (err) => { console.log("SOCKET CONNECTION ERR ----", err) })
-
-  //1
   checkPermission = async() => {
-    console.log("in check permission.........")
     const enabled = await firebase.messaging().hasPermission();
     if (enabled) {
         this.getToken();
@@ -38,8 +53,7 @@ const App = (props) => {
         this.requestPermission();
     }
   }
-  
-    //3
+
   getToken = async() => {
     let fcmToken = await AsyncStorage.getItem('fcmToken');
     console.log("getting token...........", fcmToken)
@@ -67,42 +81,32 @@ const App = (props) => {
         console.log('permission rejected');
     }
   }
-
-  createNotificationListeners = async() => {
-    console.log("creating notification listeners+++++++++++++++++++++++++")
-    /*
-    * Triggered when a particular notification has been received in foreground
-    * */
-    notificationListener = firebase.notifications().onNotification((notification) => {
-      console.log(">>>>>>>>>>>>>>>>>>>>>>ListenerTop",title, body)
+ 
+  messageListener = async () => {
+    this.notificationListener = firebase.notifications().onNotification((notification) => {
+        console.log("notification====================",notification)
         const { title, body } = notification;
-        showAlert(title, body);
+        this.showAlert(title, body);
     });
   
-    /*
-    * If your app is in background, you can listen for when a notification is clicked / tapped / opened as follows:
-    * */
-    notificationOpenedListener = firebase.notifications().onNotificationOpened((notificationOpen) => {
-        const { title, body } = notificationOpen.notification;
-        console.log(">>>>>>>>>>>>>>>>>>>>>>Listener",title, body)
-        showAlert(title, body);
+    this.notificationOpenedListener = firebase.notifications().onNotificationOpened((notificationOpen) => {
+      console.log("notification2=========================")  
+      this.showAlert('Alert', "Alert")
+      const { title, body } = notificationOpen.notification;
+        this.showAlert(title, body);
     });
+     // const notificationOpen = await firebase.notifications().getInitialNotification();
+    firebase.notifications().getInitialNotification()
+      .then(payload => {
+        console.log("payload=======", payload)
+      });
+    // if (notificationOpen) {
+    //     const { title, body } = notificationOpen.notification;
+    //     this.showAlert(title, body);
+    // }
   
-    /*
-    * If your app is closed, you can check if it was opened by a notification being clicked / tapped / opened as follows:
-    * */
-    const notificationOpen = await firebase.notifications().getInitialNotification();
-    if (notificationOpen) {
-        const { title, body } = notificationOpen.notification;
-        console.log(">>>>>>>>>>>>>>>>>>>>>>Open",title, body)
-        showAlert(title, body);
-    }
-    /*
-    * Triggered for data only payload in foreground
-    * */
-    messageListener = firebase.messaging().onMessage((message) => {
-      //process data message
-      console.log(JSON.stringify(message));
+    this.messageListener = firebase.messaging().onMessage((message) => {
+      console.log("I am here",JSON.stringify(message));
     });
   }
 
@@ -115,7 +119,6 @@ const App = (props) => {
       { cancelable: false },
     );
   } 
-  console.log(">?>?>?>?>?>?>?>?>?>",socket)
   return (
     
       <MenuProvider>        

@@ -1,10 +1,29 @@
-import React from 'react';
+import React ,{ useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { AirbnbRating, Rating } from 'react-native-ratings';
 import { connect } from 'react-redux';
 import styles from './index.style';
 RootCardItem = props => {
   const {item , navigation} = props;
+  const [online, setOnline] = useState( item.is_online == 1 ? true : false)
+  useEffect(() => {
+    console.log("rootcardItem=============",props.item)
+    const socket = props.socket;
+    socket.on('user_message', (data) => {
+      const userMessage = JSON.parse(data)
+      if (userMessage.type == "user_login") {
+        if (item.r_user_id == userMessage.data.user_id) {
+          console.log("in root card socket connection use online...............", data)
+          setOnline(true)
+        }
+      } else if (userMessage.type == "user_logout") {
+        if (item.r_user_id == userMessage.data.user_id) {
+          console.log("in root card socket connection use offline...............", data)
+          setOnline(false)
+        }
+      }
+    })
+  }, [])
   return (
     <TouchableOpacity 
     onPress={() => navigation.navigate('RootPage', {
@@ -25,7 +44,7 @@ RootCardItem = props => {
           <View style={{ flexDirection: 'row', marginTop: 10, padding : 10  , justifyContent: 'space-between' }}>
             <View style={{flexDirection: 'row'}}>
               <View>
-                <View style={item.is_online_class == '1' ? styles.isOnline : styles.isOffline}>
+                <View style={online ? styles.isOnline : styles.isOffline}>
                 </View>
                 <Image style={{ height: 40, width: 40, borderRadius: 40 }} source={{ uri: item.profile }} />
               </View>
