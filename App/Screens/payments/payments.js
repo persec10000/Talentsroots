@@ -21,6 +21,7 @@ import {
 import { connect } from "react-redux";
 
 import { payments, paymentClearance } from '../../services/payments/payments'
+import moment from 'moment';
 
 
 class Payments extends Component {
@@ -105,6 +106,9 @@ class Payments extends Component {
 
         <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Pending Withdrawal</Text>
         {this.state.payments.length > 0 ? this.state.payments.map((item, index) => {
+          console.log(new Date(moment.unix(item.w_created_at)))
+          let fullDate = new Date(moment.unix(item.w_created_at));
+          let realDate = moment(fullDate).format('lll')
           return (
             <View>
               <View style={styles.cardView}>
@@ -114,7 +118,8 @@ class Payments extends Component {
                       Date:
                       </Text>
                     <Text style={styles.dataText}>
-                      {' ' + item.w_updated_at}
+                      {/* {' ' + item.w_updated_at} */}
+                      {' '+ realDate}
                     </Text>
                   </View>
                   <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
@@ -122,7 +127,7 @@ class Payments extends Component {
                       Amount:
                       </Text>
                     <Text style={styles.dataText}>
-                      {' ' + item.w_amount}
+                      {'+$' + item.w_amount}
                     </Text>
                   </View>
                   <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
@@ -138,7 +143,7 @@ class Payments extends Component {
                       Status:
                       </Text>
                     <Text style={styles.dataText}>
-                      {' ' + item.Status}
+                      {' ' + item.w_status}
                     </Text>
                   </View>
                 </View>

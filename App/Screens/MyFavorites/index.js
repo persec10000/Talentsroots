@@ -78,6 +78,7 @@ class MyFavorites extends React.Component {
                     <View key={index} style={styles.roots_wrapper}>
                       <View style={styles.roots_individual_wrapper}>
                         <TouchableHighlight onPress={()=> this.props.navigation.navigate('RootPage',{
+                          isreview:true,
                           token: this.props.token,
                           root_id: item.root_id,
                           user_id: item.user_id

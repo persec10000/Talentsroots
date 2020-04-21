@@ -27,6 +27,7 @@ import { profilerequest } from './actions/actions';
 import ProfileCard from '../../commons/ProfileCard/index';
 import RootCard from '../../commons/OtherRootItem';
 import ReviewCard from '../../commons/reviewCard';
+import FlexibleCard from '../../commons/flexiableCard'
 import SnapCarousel from './components/CustomCarousel/snap_carousel';
 import {
   widthPercentageToDP as wp,
@@ -70,6 +71,9 @@ const RootPage = (props) => {
   const [isExtra2, setIsExtra2] = useState(false);
   const [isExtra3, setIsExtr3] = useState(false);
   const [finalPrice, setFinalPrice] = useState(0);
+  const [maxDays, setMaxDays] = useState(0);
+  const [revision, setRevision] = useState(0);
+  const [flexiblePrice, setFlexiblePrice] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [ratings, setRatings] = useState('');
   const [description, setDescription] = useState('');
@@ -94,8 +98,8 @@ const RootPage = (props) => {
     }
   }
 
-  const getOtherRootDetails = async (token, id) => {
-    const response = await other_roots(token, id);
+  const getOtherRootDetails = async (token, rootId, userId) => {
+    const response = await other_roots(token, rootId, userId);
     if (response.status === 1) {
       setOtherRootsDetails(response.data);
     }
@@ -113,7 +117,7 @@ const RootPage = (props) => {
   }
 
   const getReviewDetails = async (token, id) => {
-    const response = await my_reviews(token, id);
+    const response = await review_detail(token, id)
     if (response.status === 1) {
       setReviewDetails(response.data);
     }
@@ -139,7 +143,7 @@ const RootPage = (props) => {
 
   const getData = async (token, rootId) => {
     await getRootDetails(token, rootId);
-    await getOtherRootDetails(token, props.navigation.getParam('user_id', ''));
+    await getOtherRootDetails(token, rootId, props.navigation.getParam('user_id', ''));
     await getReviewDetails(token, rootId);
     await checkFavorite(token, rootId);
     setTimePassed(false);
@@ -155,14 +159,12 @@ const RootPage = (props) => {
   useEffect(() => {
     if (props.navigation.getParam('user_id', '')) {
       const userId = props.navigation.getParam('user_id', '');
-      console.log("getuserid=============",userId)
       getUserProfile(props.token, userId)
     }
   }, [props.navigation.getParam('user_id', '')])
 
   useEffect(() => {
     if (userProfile) {
-      console.log('userProfile -----', userProfile)
       getRatings(props.token, props.navigation.getParam('user_id', ''), userProfile.type)
     }
   }, [userProfile])
@@ -238,25 +240,32 @@ const RootPage = (props) => {
       
     }
     
-    console.log("::::::::::::::::::::::::::::::",rootDetails)
 
   const handleBuyNow = async () => {
-
-    const getFinalPrice = await getFinalPriceService(props.token, finalPrice);
-    console.log("////////////////", getFinalPrice)
-    let REVISION_PRICE = 0;
-    let DELIVERY_PRICE = 0;
-    let REVISION_DAYS = 0;
-    let DELIVERY_DAYS = 0;
-    let DAYS = parseInt(rootDetails.r_fiixed_price.max_days);
-    if (extraRevision) {
-      REVISION_PRICE = rootDetails.r_extra.revision.price;
-      REVISION_DAYS = parseInt(rootDetails.r_extra.revision.max_days);
-      DAYS += REVISION_DAYS; 
+    console.log(flexiblePrice, maxDays, revision)
+        let getFinalPrice;
+        let REVISION_PRICE = 0;
+        let DELIVERY_PRICE = 0;
+        let REVISION_DAYS = 0;
+        let DELIVERY_DAYS = 0;
+        let DAYS = parseInt(rootDetails.r_fiixed_price.max_days);
+      if (extraRevision) {
+        REVISION_PRICE = rootDetails.r_extra.revision.price;
+        REVISION_DAYS = parseInt(rootDetails.r_extra.revision.max_days);
+        DAYS += REVISION_DAYS; 
+      }
+    if (finalPrice){
+      getFinalPrice = await getFinalPriceService(props.token, finalPrice);
+      if (fastDelivery) {
+        DELIVERY_PRICE = rootDetails.r_extra.fast_delivery.price;
+        DELIVERY_DAYS = parseInt(rootDetails.r_extra.fast_delivery.max_days);
+        DAYS -= DELIVERY_DAYS
+      }
     }
-    if (fastDelivery) {
-      DELIVERY_PRICE = rootDetails.r_extra.fast_delivery.price;
-      DELIVERY_DAYS = parseInt(rootDetails.r_extra.fast_delivery.max_days);
+    else {
+      getFinalPrice = await getFinalPriceService(props.token, flexiblePrice);
+      DELIVERY_PRICE =  flexiblePrice;
+      DELIVERY_DAYS =  maxDays;
       DAYS -= DELIVERY_DAYS
     }
     props.navigation.navigate('PaymentScreen', {
@@ -266,7 +275,7 @@ const RootPage = (props) => {
         username: rootDetails.username,
         used_balance: getFinalPrice.data.usedBalance,
         total: getFinalPrice.data.finalprice,
-        final_price: rootDetails.r_fiixed_price.price,//finalPrice
+        final_price: finalPrice?rootDetails.r_fiixed_price.price:flexiblePrice,//finalPrice
         processing_fees: getFinalPrice.data.processingPrice,
         r_user_id: rootDetails.r_user_id,
         r_id: rootDetails.r_id,
@@ -304,6 +313,12 @@ const RootPage = (props) => {
 
   const toggleSlider = () => {
     setSliderVisible(!isSliderVisible);
+  }
+
+  const setflexPrice = (price, max_days, revision) => {
+    setFlexiblePrice(price);
+    setMaxDays(max_days);
+    setRevision(revision);
   }
 
   const showRootDetails = (data) => {
@@ -441,9 +456,16 @@ const RootPage = (props) => {
             Report this
             </Text>
         </View>
+        {/*Flexible price card*/}
+        {rootDetails.r_price_status == 1 &&
+        <FlexibleCard
+          rootDetails={rootDetails}
+          flexiblePrice={setflexPrice}
+        />
+        } 
         {/*Additionals Section*/}
         {data.r_user_id != props.userId ? <>{
-          data.r_extra.fast_delivery.price && data.r_extra.revision.price && (
+          data.r_extra.fast_delivery.price != '' && data.r_extra.revision.price != '' && 
             <View style={styles.card}>
               <View style={{ flexDirection: 'row', padding: 10 }}>
                 <Text style={styles.description}>Additionals</Text>
@@ -465,12 +487,11 @@ const RootPage = (props) => {
                     onPress={() => setExtraRevision(!extraRevision)}
                   />)
               }
-            </View>
-          )
+            </View>          
         }</> : null}
 
         {data.r_user_id == props.userId && <Button
-          disabled={ true}
+          disabled={true}
           onPress={handleBuyNow}
           style={[styles.buttons, { backgroundColor: '#555' }]}>
           <Text style={styles.buttonsText}>
@@ -478,12 +499,19 @@ const RootPage = (props) => {
           </Text>
         </Button>}
         {/*Buy Now Button*/}
-        {data.r_user_id != props.userId && <Button
+        {data.r_user_id != props.userId &&
+        <Button
           onPress={handleBuyNow}
           style={[styles.buttons, { backgroundColor: '#2ec09c' }]}>
+          {finalPrice?  
           <Text style={styles.buttonsText}>
             BUY NOW FOR ${finalPrice}
           </Text>
+          :
+          <Text style={styles.buttonsText}>
+            BUY NOW FOR {flexiblePrice != 0 && `$${flexiblePrice}`}
+          </Text>
+          }
         </Button>}
         {/*Ask Custom Offer Button*/}
         {data.r_user_id != props.userId && <Button
@@ -509,7 +537,7 @@ const RootPage = (props) => {
           }
         </>
         {/*Reviews*/}
-        { reviewDetails && userProfile && ratings && ratings.reviews.length > 0 ?
+        { reviewDetails.length>0 && userProfile && ratings && ratings.reviews.length > 0 ?
           <>
             <ReviewCard
               navigation={props.navigation}
@@ -540,8 +568,6 @@ const RootPage = (props) => {
       </>
     )
   }
-
-  console.log('favorite is', favorite)
 
   return (
     <DrawerWrapper {...props}>

@@ -55,7 +55,7 @@ class Payment extends React.Component {
               <Text style={{ fontWeight: 'bold', fontSize: 20 }}>My Payments</Text>
             </View>
             <View style={{justifyContent: 'flex-end'}}>
-              <Text style={{ fontWeight: 'bold', fontSize: 20, color: 'green', marginTop: 5, textAlign: 'right' }}>
+              <Text style={{ fontWeight: 'bold', fontSize: 20, color: '#2ec09c', marginTop: 5, textAlign: 'right' }}>
                 Current Balance: ${this.state.balance.data}</Text>
             </View>
             <View style={styles.picker}>

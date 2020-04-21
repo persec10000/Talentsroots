@@ -52,6 +52,7 @@ const AdvanceSearch = (props) => {
   const [priceLowToHigh, setPriceLowToHigh] = useState('');
   const [reviewsHighToLow, setReviewsHighToLow] = useState('');
   const [reviewsLowToHigh, setReviewsLowToHigh] = useState('');
+  const [recommended, setRecommended] = useState('');
   const [onlineSeller, setOnlineSeller] = useState(false);
   const [token, setToken] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -368,6 +369,40 @@ const AdvanceSearch = (props) => {
           <Image
             style={styles.filterItemImageStyle}
             source={reviewsHighToLow ? require('../../assets/icons/online.png') : require('../../assets/icons/unselect.png')}
+          />
+        </TouchableOpacity>
+      </View>
+      <Dash
+        dashColor="#E8EEF1"
+        style={styles.dashStyle}
+      />
+      {/* recommended */}
+      <View style={styles.filterItemViewStyle}>
+        <View
+          style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity
+            onPress={() => {
+              setRecommended(!recommended);
+            }}
+            style={styles.filterItemImageViewStyle}>
+            <Image
+              style={styles.filterItemImageStyle}
+              source={require('../../assets/icons/recommended.png')}
+            />
+          </TouchableOpacity>
+          <Text style={styles.filterItemTextStyle}>
+            Recommended
+          </Text>
+        </View>
+        <TouchableOpacity
+          style={styles.filterItemRadioStyle}
+          onPress={() => {
+            setRecommended(!recommended);
+          }}
+        >
+          <Image
+            style={styles.filterItemImageStyle}
+            source={recommended ? require('../../assets/icons/online.png') : require('../../assets/icons/unselect.png')}
           />
         </TouchableOpacity>
       </View>

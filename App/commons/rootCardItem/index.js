@@ -26,11 +26,16 @@ RootCardItem = props => {
   }, [])
   return (
     <TouchableOpacity 
-    onPress={() => navigation.navigate('RootPage', {
-      token: props.token,
-      root_id: item.r_id,
-      user_id: item.r_user_id
-    })}>
+    onPress={() => 
+      {
+        navigation.goBack();
+        navigation.navigate('RootPage', {
+        token: props.token,
+        root_id: item.r_id,
+        user_id: item.r_user_id
+        })
+      }
+    }>
       <View style={styles.cardView}>
         <View style={styles.headerViewStyle}>
           <Image 
@@ -44,8 +49,7 @@ RootCardItem = props => {
           <View style={{ flexDirection: 'row', marginTop: 10, padding : 10  , justifyContent: 'space-between' }}>
             <View style={{flexDirection: 'row'}}>
               <View>
-                <View style={online ? styles.isOnline : styles.isOffline}>
-                </View>
+                <View style={online ? styles.isOnline : styles.isOffline}/>
                 <Image style={{ height: 40, width: 40, borderRadius: 40 }} source={{ uri: item.profile }} />
               </View>
               <Text style={{fontSize: 15 , fontWeight: 'bold' , marginLeft: 5}}>{item.name}</Text>

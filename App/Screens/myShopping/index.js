@@ -34,13 +34,10 @@ class MyShopping extends React.Component {
   componentDidMount = async () => {
     console.disableYellowBox = true;
 
-    console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>", this.props.screenProps)
-
     const response = await my_shopping(this.props.token, 'active')
     this.setState({ counts: response.data, loader: false })
     this.setState({ myShopping: response.data })
 
-    console.log("????????????????", props.data.id)
     const socket = this.props.screenProps
     socket.on('user_message', (data) => {
       const userMessage = JSON.parse(data)
@@ -58,6 +55,7 @@ class MyShopping extends React.Component {
           }
         })
       } else if (userMessage.type == "user_logout") {
+        this.state.myShopping.orders.map((item, index) => {
         if (item.o_buyer_id == userMessage.data.user_id) {
           console.log("in my shopping socket connection use online...............", data)
           item.is_online = 0
@@ -68,6 +66,7 @@ class MyShopping extends React.Component {
           newArr[index] = item;
           this.setState({ myShopping: newArr})
         }
+      })
       }
     })
   }

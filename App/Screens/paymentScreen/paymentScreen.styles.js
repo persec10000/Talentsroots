@@ -27,38 +27,37 @@ export default StyleSheet.create({
         padding: 5,
     },
     ImageStyle : { 
-        width : width - width / 10,
-        height : height / 4,
+        width : width - width / 7,
+        height : height / 6,
         borderRadius: 5 
     }, 
     CardTitleStyle : {
-        fontSize : 14,
+        fontSize : 13,
         color : 'lightgray',
         fontWeight : 'bold',
         paddingLeft : 15,
     },
     PriceStyle : {
-        fontSize : 20,
+        fontSize : 14,
         color : 'lightgray',
         fontWeight : 'bold',
         textAlign:'right',
         paddingRight:15
     },
     profileViewStyle : {
-        display : 'flex',
         flexDirection : 'row',
         justifyContent : 'center'
     },
     profileLeftViewStyle : {
         flex : 1 ,
         flexDirection : 'row',
-        padding : 10 ,
+        padding : 8 ,
         alignItems : 'center'
     },
     profileLeftViewImageStyle : {
-        width: 50, 
-        height: 50, 
-        borderRadius: 120 / 2 
+        width: 40, 
+        height: 40, 
+        borderRadius: 80 / 2 
     },
     profileLeftViewNameStyle : {
         fontWeight: '500', 
@@ -70,7 +69,7 @@ export default StyleSheet.create({
         fontWeight: '700', 
         fontSize: 14 ,
         paddingLeft : 5,
-        paddingBottom:10,
+        paddingBottom:5,
         color : 'lightgray'
     },
     tableItem : { 
@@ -98,7 +97,7 @@ export default StyleSheet.create({
     couponViewStyle : {
         display : 'flex',
         flexDirection : 'row',
-        marginTop : 20,
+        marginTop : 10,
     },
     couponTextInputStyle : { 
         height: 40, 
@@ -112,8 +111,11 @@ export default StyleSheet.create({
     },
     button : {
         flex : 2,
+        height: 40,
         borderRadius: 5, 
-        marginRight: 13, 
+        marginRight: 10,
+        paddingHorizontal:10,
+        backgroundColor: '#10a2ef', 
         justifyContent: 'center'
     },
     buttonText: { 
@@ -121,7 +123,7 @@ export default StyleSheet.create({
         justifyContent: 'center', 
         color: '#FFFFFF', 
         fontWeight: '700',
-        fontSize : 13 
+        fontSize : 12,
     },
     paymentsButton : {
         borderRadius: 5, 
@@ -131,7 +133,8 @@ export default StyleSheet.create({
     },
     securityImageStyle : { 
         width : width - width / 3.5 , 
-        alignSelf : 'center'
+        alignSelf : 'center',
+        height: 70
     },
     cardView: {
         width: Dimensions.get('window').width / 1.2,

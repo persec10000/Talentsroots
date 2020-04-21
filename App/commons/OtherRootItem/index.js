@@ -10,6 +10,7 @@ import { Rating, CheckBox, Badge } from 'react-native-elements';
 import styles from './index.style';
 import ProgressCircle from 'react-native-progress-circle'
 import RootCardItem from '../rootCardItem';
+// import RootCard from '../../commons/rootCard';
 import { widthPercentageToDP } from '../responsive_design';
 import { ScrollView } from 'react-native-gesture-handler';
 

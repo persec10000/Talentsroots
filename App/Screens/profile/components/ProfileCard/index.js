@@ -105,6 +105,21 @@ const ProfileCard = props => {
                     <Text style={styles.profileNameStyle}>
                         {data.name}
                     </Text>
+                    <View style={{alignItems:'center'}}>
+                    {
+                        data.rating_count != '' && (
+                        <View style={{flexDirection: 'row', alignContent:'center'}}>
+                            <Rating
+                            readonly
+                            imageSize={20}
+                            startingValue={data.rating}
+                            />
+                            <Text style={{color:'#fcb059'}}>{JSON.stringify(data.rating).length == 1 ?data.rating+'.0':data.rating}</Text>
+                            <Text style={{fontWeight: '700', marginLeft:3}}>({data.rating_count})</Text>
+                        </View>)
+                    }
+                    </View>
+                    <Text style={{textAlign:'center', color:'#748f9e', fontWeight: '700'}}>{data.orders_in_queue} orders in queue</Text>
                     {
                         data.type === 1 ? 
                         <Text style={styles.buyerText}>
@@ -122,15 +137,6 @@ const ProfileCard = props => {
                         </Text>
                         </ReadMore>
                     }
-                    {
-                        data.r_rating_count && (
-                            <Rating
-                            readonly
-                            imageSize={20}
-                            startingValue={data.r_rating_count}
-                        />)
-                    }
-                   
                     {
                         !isContact ? 
                         <Button 
@@ -257,7 +263,7 @@ const ProfileCard = props => {
                                 <Text style={styles.tableItemRightText}>{ `${data.preffered_language ? data.preffered_language : ''}` } { data.additional_language ? ` , ${data.additional_language}` : ''  }</Text>
                             </View>
                         </View>
-                    <View style={{ display: 'flex', flexDirection: 'row', paddingTop: 20 }} >
+                    <View style={{ display: 'flex', flexDirection: 'row',flexWrap: 'wrap', paddingTop: 20}} >
                       { data.skills && data.skills.length > 0 ? 
                         data.skills.map(item=>(
                         <Badge

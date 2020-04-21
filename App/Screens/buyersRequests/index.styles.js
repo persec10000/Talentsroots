@@ -92,8 +92,8 @@ export default StyleSheet.create({
         borderRadius: 25,
     },
     titleStyle : {
-        fontWeight : '600',
-        color : 'blue',
+        fontWeight : '700',
+        color : '#10a2ef',
         paddingVertical : 6
     },
     descriptionStyle : {
@@ -183,6 +183,7 @@ export default StyleSheet.create({
         borderRadius: 5,
         alignItems: 'center',
         alignContent: 'center',
+        justifyContent:'center',
         marginTop: 15,
         padding: 10,
         color: 'white'
@@ -190,48 +191,71 @@ export default StyleSheet.create({
     cancel: {
         height: 35,
         width: 120,
-        backgroundColor: '#10A2EF',
+        backgroundColor: '#10a2ef',
         borderRadius: 5,
         alignItems: 'center',
         alignContent: 'center',
+        justifyContent:'center',
         marginTop: 15,
         padding: 10,
         color: 'white'
     },
-      modalItemStyle: {
-      display: 'flex',
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: 20,
-      paddingVertical: 10,
-      borderBottomWidth: 1,
-      borderBottomColor: '#DDD',
-      borderStyle: 'dashed'
-  },
-  paddingModal: {
-      padding: 10,
-      borderRadius: 1,
-      borderColor: 'lightgrey',
-      borderRadius: 10
-  },
+    modalItemStyle: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#DDD',
+        borderStyle: 'dashed'
+    },
+    paddingModal: {
+        borderRadius: 5,
+        borderColor: 'lightgrey',
+        borderWidth: 1,
+    },
 
-  sendButton: {
-      borderWidth: 1,
-      borderColor: 'green',
-      alignItems: 'center',
-      justifyContent: 'center',
-      width: 50,
-      height: 50,
-      backgroundColor: 'green',
-      borderRadius: 50,
-  },
-  modal: {
-      backgroundColor: "white",
-      padding: 10
-  },
-  secondModal: {
-      backgroundColor: "white",
-      padding: 10,
-  },
+    sendButton: {
+        borderWidth: 1,
+        borderColor: 'green',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 50,
+        height: 50,
+        backgroundColor: 'green',
+        borderRadius: 50,
+    },
+    modal: {
+        backgroundColor: "white",
+        padding: 10,
+        borderWidth:1, 
+        borderColor: '#7F7F7F', 
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 7,
+        },
+        shadowOpacity: 0.41,
+        shadowRadius: 9.11,
+        elevation: 14
+    },
+    secondModal: {
+        backgroundColor: "white",
+        padding: 10,
+    },
+    loadMoreBT: {
+        width: 300,
+        height: 40,
+        backgroundColor: '#10a2ef',
+        justifyContent: 'center',
+        alignItems:'center',
+        borderRadius: 5
+    },
+    loadMoreText:{
+        color: '#fff',
+        fontSize: 18,
+        textAlign: 'center'
+    }
 });

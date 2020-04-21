@@ -140,7 +140,7 @@ const Details = (props) => {
     console.log('tags.tagsArray',tags.tagsArray)
     let allTags = tags.tagsArray;
     console.log('allTags',allTags)
-    // formData.append('r_tags',allTags);
+    formData.append('r_tags',allTags);
 
     //files and videos remaing 
     // formData.append('r_video_link[]',[video1,video2,video3])
@@ -185,8 +185,8 @@ const Details = (props) => {
       } else if (response.customButton) {
         console.log('User tapped custom button: ', response.customButton);
       } else {
-        console.log("uploading image",response)
-        const source = {uri: response.uri};
+        console.log("uploading image",response.path)
+        const source = {uri: 'file://'+response.path};
         setImage(source)
       }
     });

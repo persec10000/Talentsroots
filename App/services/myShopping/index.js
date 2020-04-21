@@ -1,6 +1,7 @@
 import config from '../../config'
 
 export const my_shopping = async (token, type) => {
+  console.log("shoppinggggggg",type)
   return await fetch(config.myShopping, {
     method: "POST",
     headers: {

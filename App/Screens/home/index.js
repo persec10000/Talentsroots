@@ -168,7 +168,7 @@ const Home = (props) => {
       }
     }
   };
-  console.log("recentlyViewedRoots====>",recentlyViewedRoots)
+  console.log("recentlyViewedRoots====>",topRatedRoots)
   return (
     <DrawerWrapper {...props}>
       <View style={styles.home}>

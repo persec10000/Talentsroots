@@ -48,6 +48,7 @@ class MySales extends React.Component {
 
   fetchsales = async (type) => {
     this.setState({ type: type })
+    console.log("typeeeeeeeeeeeee", type)
     const response = await my_sales(this.props.token, type)
     console.log("=======>>>>>>>>", response)
     this.setState({ mySales: response.data })
@@ -65,12 +66,12 @@ class MySales extends React.Component {
           <View>
             <Text style={{ fontSize: 16, color: 'black', paddingLeft: 10 }}>
               {item.r_title}({item.o_order_id})
-                          </Text>
+            </Text>
           </View>
           <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
             <Text style={styles.headText}>
               Due On:
-                           </Text>
+            </Text>
             <Text style={styles.dataText}>
               {item.due_on}
             </Text>
@@ -78,7 +79,7 @@ class MySales extends React.Component {
           <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
             <Text style={styles.headText}>
               Amount:
-                            </Text>
+            </Text>
             <Text style={styles.dataText}>
               ${item.o_amount}
             </Text>
@@ -96,12 +97,12 @@ class MySales extends React.Component {
           <View>
             <Text style={{ fontSize: 16, color: 'black', paddingLeft: 10 }}>
               {item.r_title}({item.o_order_id})
-                          </Text>
+            </Text>
           </View>
           <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
             <Text style={styles.headText}>
               Sold on:
-                            </Text>
+            </Text>
             <Text style={styles.dataText}>
               {item.sold_on}
             </Text>
@@ -109,7 +110,7 @@ class MySales extends React.Component {
           <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
             <Text style={styles.headText}>
               Late:
-                           </Text>
+            </Text>
             <Text style={styles.dataText}>
               {item.late}
             </Text>
@@ -117,7 +118,7 @@ class MySales extends React.Component {
           <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
             <Text style={styles.headText}>
               Amount:
-                            </Text>
+            </Text>
             <Text style={styles.dataText}>
               ${item.o_amount}
             </Text>
@@ -135,12 +136,12 @@ class MySales extends React.Component {
           <View>
             <Text style={{ fontSize: 16, color: 'black', paddingLeft: 10 }}>
               {item.r_title}({item.o_order_id})
-                          </Text>
+            </Text>
           </View>
           <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
             <Text style={styles.headText}>
               Delivered On:
-                           </Text>
+            </Text>
             <Text style={styles.dataText}>
               {item.delivered_on}
             </Text>
@@ -148,7 +149,7 @@ class MySales extends React.Component {
           <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
             <Text style={styles.headText}>
               Amount:
-                            </Text>
+            </Text>
             <Text style={styles.dataText}>
               ${item.o_amount}
             </Text>
@@ -166,12 +167,12 @@ class MySales extends React.Component {
           <View>
             <Text style={{ fontSize: 16, color: 'black', paddingLeft: 10 }}>
               {item.r_title}({item.o_order_id})
-                          </Text>
+            </Text>
           </View>
           <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
             <Text style={styles.headText}>
               Sold on:
-                            </Text>
+            </Text>
             <Text style={styles.dataText}>
               {item.sold_on}
             </Text>
@@ -179,7 +180,7 @@ class MySales extends React.Component {
           <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
             <Text style={styles.headText}>
               Completed On:
-                           </Text>
+            </Text>
             <Text style={styles.dataText}>
               {item.completed_on}
             </Text>
@@ -187,7 +188,7 @@ class MySales extends React.Component {
           <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
             <Text style={styles.headText}>
               Amount:
-                            </Text>
+            </Text>
             <Text style={styles.dataText}>
               ${item.o_amount}
             </Text>
@@ -205,12 +206,12 @@ class MySales extends React.Component {
           <View>
             <Text style={{ fontSize: 16, color: 'black', paddingLeft: 10 }}>
               {item.r_title}({item.o_order_id})
-                          </Text>
+            </Text>
           </View>
           <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
             <Text style={styles.headText}>
               Cancelled On:
-                           </Text>
+            </Text>
             <Text style={styles.dataText}>
               {item.cancelled_on}
             </Text>
@@ -218,7 +219,7 @@ class MySales extends React.Component {
           <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
             <Text style={styles.headText}>
               Amount:
-                            </Text>
+            </Text>
             <Text style={styles.dataText}>
               ${item.o_amount}
             </Text>
@@ -284,8 +285,8 @@ class MySales extends React.Component {
               return (
                 <TouchableOpacity onPress={() => { this.props.navigation.navigate('OrderDetails', { orderDetails: item, from: 'sales' }) }}>
                   {
-                        this.showCard(item)
-                      }
+                    this.showCard(item)
+                  }
                 </TouchableOpacity>
               );
             })}

@@ -303,7 +303,8 @@ const mapStateToProps = state => {
     return {
         token: state.LoginUser.userToken,
         review: state.addRoot,
-        id: state.LoginUser.user_id
+        id: state.LoginUser.user_id,
+        profileData: state.userProfile.profiledata
     };
 };
 

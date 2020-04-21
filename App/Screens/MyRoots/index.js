@@ -263,9 +263,10 @@ class MyRoots extends React.Component {
                         <View style={styles.avatarContainer}>
                           <Image 
                             style={styles.image_wrapper} 
-                            source={{uri: item.r_root_image ? item.r_root_image : ''}} />
+                            source={{uri: item.rf_file_name ? item.rf_file_name : ''}} />
                           <Text 
                             onPress={() => this.props.navigation.navigate('RootPage', {
+                              isreview:true,
                               token: this.props.token,
                               root_id: item.r_id,
                               user_id: item.r_user_id

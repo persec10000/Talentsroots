@@ -38,6 +38,7 @@ import {
 import {
   forgetPwEmail
 } from '../../../services/auth/index'
+import TimeZone from 'react-native-timezone';
 
 const HEIGHT = Dimensions.get('window').height;
 const WIDTH = Dimensions.get('window').width;
@@ -182,12 +183,18 @@ class LoginScreen extends React.Component {
       50,
     );
   };
-
+  getTimeZone = async() => {
+    const timeZone = await TimeZone.getTimeZone().then(zone => zone);
+    let realtimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone 
+    this.setState({tz:realtimeZone})
+    console.log("timezone====",Intl.DateTimeFormat().resolvedOptions().timeZone)
+  }
   componentDidMount = () => {
-    console.log('local time', RNLocalize.getTimeZone());
-    this.setState({
-      tz: RNLocalize.getTimeZone(),
-    });
+    // console.log('local time', RNLocalize.getTimeZone());
+    // this.setState({
+    //   tz: RNLocalize.getTimeZone(),
+    // });
+    this.getTimeZone()
     DeviceInfo.getAndroidId().then(androidId => {
       // androidId here
       console.log('android id', androidId);

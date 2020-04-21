@@ -21,7 +21,7 @@ import {
   user_reviews
 } from '../../services/userReviews';
 import { StackViewTransitionConfigs } from 'react-navigation-stack';
-let total = 0;
+
 const SubReviewList = props => {
   let subrating = Math.round((parseFloat(props.communication_level) + parseFloat(props.quality_of_delivered_work) + parseFloat(props.recommended_for_others))/3*10)/10
     return(
@@ -32,19 +32,23 @@ const SubReviewList = props => {
               <Image style={styles.reviewCardAvatar} source={{uri: props.profile}} />
           </View>
           <View style={{flex:1}}>
-            <View style={{marginLeft: 15, flexDirection: 'row'}}>
-              <Text style={{fontSize: 12}}>{props.name}</Text>
-              <AirbnbRating
-                selectedColor="#ffd700"
-                count={5}
-                showRating={false}
-                size={16}
-                defaultRating={(parseFloat(props.communication_level) + parseFloat(props.quality_of_delivered_work) + parseFloat(props.recommended_for_others))/3}
-                isDisabled
-              />
-              <Text>
-                {JSON.stringify(subrating).length == 1?JSON.stringify(subrating)+'.0':JSON.stringify(subrating)}
-              </Text>
+            <View style={{marginLeft: 15, flexDirection: 'row', alignContent:'space-between'}}>
+              <View style={{flex:1}}>
+                <Text style={{fontSize: 12}}>{props.name}</Text>
+              </View>
+              <View style={{flexDirection:'row'}}>
+                <Rating
+                  type="star"
+                  fractions={1}
+                  startingValue={subrating}
+                  readonly
+                  imageSize={16}
+                  onFinishRating={this.ratingCompleted}
+                />
+                <Text>
+                  {JSON.stringify(subrating).length == 1?JSON.stringify(subrating)+'.0':JSON.stringify(subrating)}
+                </Text>
+              </View>
             </View>
             <View style={{marginLeft: 15}}>
               <Text style={{textAlign:'left'}}>
@@ -78,21 +82,20 @@ const ReviewCard = (props) => {
 
   useEffect(() => {
     console.log("total========",data)
-    let rating = 0;
+    let total = 0;
+    let rate = 0;
     let totalcom = 0;
     let totalqua = 0;
     let totalrecom = 0;
     if (data){
       data.map((item) => {
-        rating = Math.round(parseFloat((parseFloat(item.communication_level) + parseFloat(item.quality_of_delivered_work) + parseFloat(item.recommended_for_others))/3)*10)/10
-        total =  total + rating 
+        rate = Math.round(parseFloat((parseFloat(item.communication_level) + parseFloat(item.quality_of_delivered_work) + parseFloat(item.recommended_for_others))/3)*10)/10
+        total =  total + rate 
         totalcom = totalcom + parseFloat(item.communication_level);
         totalqua = totalqua + parseFloat(item.quality_of_delivered_work);
         totalrecom = totalrecom + parseFloat(item.recommended_for_others);
       })
-      console.log("total========",total)
       setTotalRating(total)
-      // setRating(parseFloat(data.data.avarage/review.length))
       setComRating(totalcom)
       setQuaRating(totalqua)
       setRecomRating(totalrecom)
@@ -108,13 +111,16 @@ const ReviewCard = (props) => {
     <View style={styles.reviewCard}>
       <View style={{flexDirection: 'row'}}>
         <Text style={styles.description}>Reviews</Text>
+        {totalrating != 0 &&
         <Rating
+          type="star"
+          fractions={1}
+          startingValue={Math.round((totalrating/data.length)*10)/10}
           readonly
-          startingValue={1}
-          ratingCount={1}
-          style={{ paddingHorizontal: 5, paddingVertical: 3 }}
           imageSize={20}
+          onFinishRating={this.ratingCompleted}
         />
+        }
         <Text style={styles.ratingTextStyle}>{JSON.stringify(Math.round((totalrating/data.length)*10)/10).length == 1? JSON.stringify(Math.round((totalrating/data.length)*10)/10)+'.0':Math.round((totalrating/data.length)*10)/10}</Text>
         <Text style={styles.ratingTextStyle}>({data.length})</Text>
       </View>
@@ -124,12 +130,16 @@ const ReviewCard = (props) => {
             COMMUNICATION LEVEL
           </Text>
           <View style={{flexDirection: 'row'}}>
+            {comRating != 0 &&
             <Rating
+              type="star"
+              fractions={1}
+              startingValue={Math.round((comRating/data.length)*10)/10}
               readonly
-              startingValue={1}
-              ratingCount={1}
-              imageSize={20}
+              imageSize={16}
+              onFinishRating={this.ratingCompleted}
             />
+            }
             <Text style={styles.ratingTextStyle}>{JSON.stringify(Math.round((comRating/data.length)*10)/10).length == 1? JSON.stringify(Math.round((comRating/data.length)*10)/10)+'.0':Math.round((comRating/data.length)*10)/10}</Text>
           </View>
         </View>
@@ -138,12 +148,16 @@ const ReviewCard = (props) => {
             QUALITY OF WORK
           </Text>
           <View style={{flexDirection: 'row'}}>
+            {quaRating != 0 &&
             <Rating
+              type="star"
+              fractions={1}
+              startingValue={Math.round((quaRating/data.length)*10)/10}
               readonly
-              startingValue={1}
-              ratingCount={1}
-              imageSize={20}
+              imageSize={16}
+              onFinishRating={this.ratingCompleted}
             />
+            }
             <Text style={styles.ratingTextStyle}>{JSON.stringify(Math.round((quaRating/data.length)*10)/10).length == 1? JSON.stringify(Math.round((quaRating/data.length)*10)/10)+'.0':Math.round((quaRating/data.length)*10)/10}</Text>
           </View>
         </View>
@@ -152,12 +166,16 @@ const ReviewCard = (props) => {
             RECOMMEND TO OTHERS
           </Text>
           <View style={{flexDirection: 'row'}}>
+            {recomRating != 0 &&
             <Rating
+              type="star"
+              fractions={1}
+              startingValue={Math.round((recomRating/data.length)*10)/10}
               readonly
-              startingValue={1}
-              ratingCount={1}
-              imageSize={20}
+              imageSize={16}
+              onFinishRating={this.ratingCompleted}
             />
+            }
             <Text style={styles.ratingTextStyle}>{JSON.stringify(Math.round((recomRating/data.length)*10)/10).length == 1? JSON.stringify(Math.round((recomRating/data.length)*10)/10)+'.0':Math.round((recomRating/data.length)*10)/10}</Text>
           </View>
         </View>

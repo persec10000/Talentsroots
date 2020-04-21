@@ -21,13 +21,19 @@ const Review = (props) => {
     const {root} = props;
 
     const handlePostRoot = () => {
-
+      console.log("propssssssssssssssssss",props.root)
       const formData = new FormData();
 
       //data from title screen
       formData.append('r_title',props.root.rootTitle);
       formData.append('r_category_id',props.root.category); 
       formData.append('r_subcategory_ids',props.root.subCategory);
+      // let image = {
+      //   uri: props.root.image,
+      //   type: 'image/jpeg',
+      //   name: 'photo.jpg',
+      // }
+      // formData.append('r_image',props.root.image);
   
       //data from price screen
       if(!props.root.isPriceFlexible){
@@ -94,7 +100,8 @@ const Review = (props) => {
       //tags and files 
      
       // let tags = props.root.tags.tagsArray;
-      // formData.append('r_tags',tags);
+      // console.log(tags)
+      // formData.append('r_tags',tags.join());
 
       //post root
       formData.append('r_type',0);// 0 : post 
@@ -123,13 +130,25 @@ const Review = (props) => {
             <Text>{root.subcategory}</Text>
           </View>
           <View style={styles.about_root_text_wrapper}>
-            <Text>Price</Text>
+            <Text>Price($)</Text>
             <Text>{root.price && root.price + " USD"}</Text>
           </View>
           <View style={styles.about_root_text_wrapper}>
-            <Text>Max Days to Deliver</Text>
-            <Text>{root.deliveryDays!="" && root.deliveryDays + " Days"}</Text>
+            <Text>Delivery(days)</Text>
+            <Text>{root.deliveryDays!="" && root.deliveryDays}</Text>
           </View>
+          {root.isExtraFastDelivery&&
+          <View style={styles.about_root_text_wrapper}>
+            <Text>Extra Delivery(days)</Text>
+            <Text>{root.fastDeliveryDays!="" && root.fastDeliveryDays}</Text>
+          </View>
+          }
+          {root.isExtraFastDelivery&&
+          <View style={styles.about_root_text_wrapper}>
+            <Text>Extra Delivery Price($)</Text>
+            <Text>{root.fastDeliveryPrice!="" && root.fastDeliveryPrice}</Text>
+          </View>
+          }
         </View>
         <View style={styles.dotted_underline} />
         <View style={styles.description_wrapper}>
@@ -140,6 +159,15 @@ const Review = (props) => {
           <Text style={styles.description_title}>Intruction to Buyer</Text>
           <Text style={styles.description_body}>{root.instruction}</Text>
         </View>
+        <View style={styles.description_wrapper}>
+          <Text style={styles.description_title}>Search Tags</Text>
+        </View>
+        <View style={styles.dotted_underline} />
+        <View style={{flexDirection:'row'}}>
+          <Text style={styles.description_body}>
+          {root.tags.tagsArray.join()}
+          </Text>
+        </View>  
         <View 
         style={styles.buttonsContainer}
         >

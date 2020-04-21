@@ -22,6 +22,7 @@ import { connect } from "react-redux";
 import DrawerWrapper from '../../commons/rightDrawerWrapper'
 import Icon from "react-native-vector-icons/FontAwesome";
 import { buyers_requests, sendCustomOfferService } from '../../services/buyersRequests'
+import {profile_service} from '../../services/profile';
 import {
   get_conversation
 } from '../../services/getConversation';
@@ -31,7 +32,7 @@ import { getRoots } from '../../services/ChatList';
 import { widthPercentageToDP, heightPercentageToDP } from '../../commons/responsive_design';
 import RNFetchBlob from 'rn-fetch-blob'
 
-
+let offsetNum = 0;
 class BuyersRequests extends React.Component {
   constructor(props) {
     super(props);
@@ -46,7 +47,9 @@ class BuyersRequests extends React.Component {
       selectedOffer: {},
       offerDetails: '',
       price: '',
-      days: ''
+      days: '',
+      textLength: 0,
+      textShown: -1,
     }
   }
 
@@ -57,35 +60,52 @@ class BuyersRequests extends React.Component {
     let rootsArray = [];
 
     let customOfferRoots = await getRoots(this.props.token);
-    console.log(">>>>>>>>>", customOfferRoots)
     for (let i = 0; i < customOfferRoots.data.data.length; i++) {
       rootsArray.push(customOfferRoots.data.data[i])
     }
-    console.log("rootsArray", rootsArray)
     this.setState({
       customRoots: rootsArray,
       activeRootCount: customOfferRoots.data.activeRootCount
     })
-
-    console.log("custom roots ==========", this.state.customRoots.length)
   }
 
   fetchRequests = async () => {
-    const response = await buyers_requests(this.props.token)
+    const response = await buyers_requests(this.props.token, offsetNum)
+    if (response.status == 1){
+      offsetNum = response.nextOffset
+    }
     console.log('buyers_requests', response.data)
-    this.setState({ BuyersRequests: response.data, isLoading: false })
+    this.setState(prevState => ({
+      BuyersRequests: [...prevState.BuyersRequests, ...response.data],
+      isLoading: false
+    }))
   }
 
+  loadMore = () => {
+    this.fetchRequests();
+  }
 
   handleContact = async (username) => {
     const response = await get_conversation(this.props.token, username);
-    if (response.status === 1) {
-      this.props.navigation.navigate('ChatScreen', { 'user': response.data.opponent })
-    } else {
-      Alert.alert('Error while contact.')
-    }
+    this.getUserProfile(this.props.token, response.data.opponent.id).then(userProfile =>{
+      if (response.status === 1) {
+        this.props.navigation.navigate('ChatScreen', { 'user': response.data.opponent, 'user_data': userProfile })
+      } else {
+        Alert.alert('Error while contact.')
+      }
+    })
+    
   }
-
+  getUserProfile = async (token, userId) => {
+    const requestData = {
+      token,
+      user_id: userId
+    }
+    const response = await profile_service(requestData);
+    if (response.status === 1) {
+        return response.data
+    }
+}
   showCustomOfferRoots = () => {
     if (this.state.activeRootCount == 0) {
       return (
@@ -106,7 +126,7 @@ class BuyersRequests extends React.Component {
                   <View key={index} style={{ flexDirection: 'row', padding: 5, borderBottomColor: '#7F7F7F', borderBottomWidth: 1  }}>
                     <Image style={{ height: 50, width: 70 }} 
                             resizeMode={'contain'}
-                            source={{ uri: item.r_root_image }} />
+                            source={{ uri: item.rf_file_name }} />
                     <View style={{ flexDirection: 'row', width: 150, flexWrap: 'wrap', marginLeft: 5 }}>
                       <TouchableOpacity onPress={() => { this.setState({ isSecondModalVisible: true, selectedOffer: item, isVisible: false }) }}>
                         <Text style={{ fontSize: 15, color: '#10A2EF', marginLeft: 5 }}>{item.r_title}</Text>
@@ -178,6 +198,11 @@ class BuyersRequests extends React.Component {
     }
   }
 
+  toggleNumberOfLines = index => {
+    this.setState({
+      textShown: this.state.textShown === index ? -1 : index,
+    });
+  };
 
   render() {
     console.log('this.state.BuyersRequests', this.state.BuyersRequests)
@@ -189,14 +214,12 @@ class BuyersRequests extends React.Component {
               {
                 this.state.isLoading && (<ActivityIndicator size="large" color="#10A2EF" />)
               }
-              {this.state.BuyersRequests.length > 0 ?
+              {this.state.BuyersRequests.length > 0 ?[
                 this.state.BuyersRequests.map((item, index) => {
-
                   const now = moment(Date.now());
-                  const expiration = moment(item.expire);
+                  const expiration = moment.unix(item.expire);
                   const diff = expiration.diff(now);
                   const diffDuration = moment.duration(diff);
-
                   days = diffDuration.days()
                   hours = diffDuration.hours()
                   minutes = diffDuration.minutes();
@@ -216,9 +239,17 @@ class BuyersRequests extends React.Component {
                         <Text style={styles.titleStyle}>
                           {item.subcategory}
                         </Text>
-                        <Text style={styles.descriptionStyle} >
+                        <Text
+                          numberOfLines={this.state.textShown === index ? undefined : 3}
+                          style={styles.descriptionStyle}>
                           {item.description}
                         </Text>
+                        <Text
+                          onPress={() => this.toggleNumberOfLines(index)}
+                          style={{ color: '#10a2ef', fontWeight: '700', textAlign:'right' }}>
+                          {this.state.textShown === index ? 'See less...' : 'See more...'}
+                        </Text>
+                        {(item.files).split("/")[5] != 'no_image.png'&&
                         <TouchableHighlight style={styles.fileViewStyle}
                         // onPress={this.toggleModal()}
                         >
@@ -235,12 +266,13 @@ class BuyersRequests extends React.Component {
                             </TouchableOpacity>
                           </>
                         </TouchableHighlight>
+                      }
                         <View style={styles.tableItemView}>
                           <Text style={styles.tableItemTitel}>
                             Delivery :
                         </Text>
                           <Text style={styles.tableItemData}>
-                            {item.delivery}
+                            {item.delivery} Day
                           </Text>
                         </View>
                         <View style={styles.tableItemView}>
@@ -248,7 +280,7 @@ class BuyersRequests extends React.Component {
                             Expiry :
                         </Text>
                           <Text style={styles.tableItemData}>
-                            {days + 'days' + hours + 'hours' + minutes + 'minutes'}
+                            {days + ' Days ' + hours + ' Hours ' + minutes + ' Minutes '}
                           </Text>
                         </View>
                         <View style={styles.tableItemView}>
@@ -259,8 +291,9 @@ class BuyersRequests extends React.Component {
                             ${item.budget_from} - ${item.budget_to}
                           </Text>
                         </View>
+                        <View style={{alignItems:'center'}}>
                         {
-                          item.offer_sent == 1 ? <View style={{ justifyContent: 'center' }}>
+                          item.offer_sent == 1 ? <View style={{ justifyContent: 'center', alignItems:'center' }}>
                             <View style={{ flexDirection: 'row', marginLeft: 10, padding: 15 }}>
                               <Icon name='share' size={20} color='lightgrey' style={{ transform: [{ rotateX: '180deg' }] }} />
                               <Text>SENT</Text>
@@ -269,7 +302,7 @@ class BuyersRequests extends React.Component {
                               <Text style={{ color: 'white' }}>Contact</Text>
                             </TouchableOpacity>
                           </View> :
-                            <View style={{ flexDirection: 'row' }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
                               {<TouchableOpacity style={styles.confirm} onPress={() => this.setState({ isVisible: true })}>
                                 <Text style={{ color: 'white' }}>Send Offer</Text>
                               </TouchableOpacity>}
@@ -278,6 +311,7 @@ class BuyersRequests extends React.Component {
                               </TouchableOpacity>
                             </View>
                         }
+                        </View>
                       </View>
                       <Modal
                         visible={this.state.isVisible}
@@ -304,24 +338,30 @@ class BuyersRequests extends React.Component {
                         deviceHeight={heightPercentageToDP(100)}>
                         <ScrollView>
                           <View style={styles.secondModal}>
-                            <View style={styles.paddingModal}>
+                            <View style={{padding: 10, fontSize: 18, fontWeight: '700'}}>
                               <Text>{this.state.selectedOffer.r_title}</Text>
                             </View>
-                            <View style={styles.paddingModal}>
-                              <Image resizeMode={'contain'} style={{ height: 100, width: 100 }} source={{ uri: this.state.selectedOffer.r_root_image }} />
+                            <View style={{flexDirection: 'row', marginVertical: 10}}>
+                              <Image resizeMode={'contain'} style={{ height: 100, width: 100 }} source={{ uri: this.state.selectedOffer.rf_file_name }} />
+                              <View style={{flex:1}}>
+                                <View style={[styles.paddingModal, {padding: 10,flex: 1, height: 200}]}>
+                                  <TextInput
+                                    multiline={true}
+                                    placeholder="Offer Details"
+                                    maxLength={2500}
+                                    onChangeText={(text) => { this.setState({ offerDetails: text }); this.setState({textLength:text.length}) }}
+                                    style={styles.input}
+                                  />
+                                </View>
+                                <View style={{marginLeft:3}}>
+                                    <Text>{this.state.textLength} / 2500 Characters</Text>
+                                </View>
+                              </View>
                             </View>
-                            <View style={styles.paddingModal}>
-                              <TextInput
-                                multiline={true}
-                                placeholder="Offer Details"
-                                onChangeText={(text) => { this.setState({ offerDetails: text }) }}
-                                style={styles.input}
-                              />
-                            </View>
-                            <View style={styles.input}>
+                            <View style={{borderWidth:1, borderColor: 'lightgrey', borderRadius:5, marginVertical: 10}}>
                               <Picker
                                 selectedValue={this.state.days}
-                                style={{ height: 70, width: 250 }}
+                                style={{ height: 50, width: "100%" }}
                                 onValueChange={(itemValue, itemIndex) =>
                                   this.setState({ days: itemValue })
                                 }>
@@ -358,8 +398,8 @@ class BuyersRequests extends React.Component {
                                 <Picker.Item label="30 day" value="30" />
 
                               </Picker>
-                            </View>
-                            <View style={styles.paddingModal}>
+                            </View> 
+                            <View style={[styles.paddingModal, {paddingHorizontal:10, paddingVertical: 3, height: 50, marginVertical:10}]}>
                               <TextInput
                                 placeholder="Price"
                                 style={styles.input}
@@ -367,10 +407,10 @@ class BuyersRequests extends React.Component {
                               />
                             </View>
                             <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }} >
-                              <TouchableOpacity style={styles.confirm} onPress={() => this.sendCustomOffer(item.request_id, this.props.token, this.state.offerDetails, this.state.days, this.state.selectedOffer.r_id, this.state.price)}>
+                              <TouchableOpacity style={[styles.confirm, {width: 90}]} onPress={() => this.sendCustomOffer(item.request_id, this.props.token, this.state.offerDetails, this.state.days, this.state.selectedOffer.r_id, this.state.price)}>
                                 <Text style={{ color: 'white' }}>SEND</Text>
                               </TouchableOpacity>
-                              <TouchableOpacity style={[styles.cancel, { marginLeft: 10 }]} onPress={() => this.setState({ isSecondModalVisible: false })}>
+                              <TouchableOpacity style={[styles.cancel, {backgroundColor: '#ff6060', marginLeft: 10, width: 90 }]} onPress={() => this.setState({ isSecondModalVisible: false })}>
                                 <Text style={{ color: 'white' }}>CANCEL</Text>
                               </TouchableOpacity>
                             </View>
@@ -379,10 +419,20 @@ class BuyersRequests extends React.Component {
                       </Modal>
                     </View>
                   );
-                }) :
+                }), 
+                <View style={[styles.roots_wrapper, {justifyContent: 'center', alignItems: 'center', paddingVertical: 15}]}>
+                  <TouchableOpacity onPress={() => this.loadMore()} style={styles.loadMoreBT}>
+                    <Text style={styles.loadMoreText}>
+                      LOAD MORE
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                ]:
                 !this.state.isLoading && (<Text style={{ textAlign: 'center' }}>Nothing yet to show!</Text>)
               }
+             
             </View>
+           
           </ScrollView>
         </View>
       </DrawerWrapper>
@@ -393,6 +443,7 @@ class BuyersRequests extends React.Component {
 const mapStateToProps = state => {
   return {
     token: state.LoginUser.userToken,
+    profileData: state.userProfile.profiledata
   };
 };
 

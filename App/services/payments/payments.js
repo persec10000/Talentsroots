@@ -91,14 +91,22 @@ export const withdrawMoney = async (token, gateway, email, amount) => {
       'paypalid': email,
       'amount': amount
     }
-  } else {
+  } 
+  else if (gateway == 2) {
     data = {
       'gateway': gateway,
       'cashuid': email,
       'amount': amount
     }
   }
-  // console.log(paymentEmail)
+  else if (gateway == 3){
+    data = {
+      'gateway': gateway,
+      'payoneerid': email,
+      'amount': amount
+    }
+  }
+  console.log(data)
 
   return await fetch(config.withdraw_money, {
     method: "POST",

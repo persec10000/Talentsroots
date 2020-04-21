@@ -9,6 +9,7 @@ import {
   Image,
   Dimensions,
   ActivityIndicator,
+  TouchableOpacity
 } from 'react-native';
 import { connect } from 'react-redux';
 
@@ -18,7 +19,8 @@ import DrawerWrapper from '../../commons/rightDrawerWrapper';
 import config from '../../config';
 import { my_reviews, awarded_reviews, pending_reviews } from '../../services/myReviews';
 import { AirbnbRating } from 'react-native-ratings';
-
+import moment from 'moment';
+let offsetNum = 0;
 class MyReviews extends React.Component {
   constructor(props) {
     super(props);
@@ -27,48 +29,71 @@ class MyReviews extends React.Component {
       pendingReviews: [],
       awardedReviews: [],
       type: 'Received',
-      loader: true
+      loader: true,
+      selected: 'received'
     };
   }
   componentDidMount = async () => {
     console.disableYellowBox = true;
-    const response = await my_reviews(this.props.token);
-    this.setState({ myreviews: response.data });
+    this.fetchReviews('received');
+    // const response = await my_reviews(this.props.token, offsetNum);
+    // this.setState({ myreviews: response.data });
     console.log('Responseeeeee', response);
   };
 
   fetchReviews = async (item) => {
     if (item == 'awarded') {
       this.setState({type: item, myreviews: [], pendingReviews: []})
-      response = await awarded_reviews(this.props.token)
-      this.setState({awardedReviews: response.data})
-      console.log("", response);
+      response = await awarded_reviews(this.props.token, offsetNum)
+      if (response.status == 1){
+        offsetNum = response.nextOffset
+      }
+      this.setState(prevState => ({
+        awardedReviews: [...prevState.awardedReviews, ...response.data],
+        isLoading: false
+      }))
+      console.log("awarded", response);
 
     } else if (item == 'received') {
       this.setState({type: item, awardedReviews: [], pendingReviews: []})
-      response = await my_reviews(this.props.token)
-      this.setState({ myreviews: response.data });
-      console.log("", response);
+      response = await my_reviews(this.props.token, offsetNum)
+      if (response.status == 1){
+        offsetNum = response.nextOffset
+      }
+      this.setState(prevState => ({
+        myreviews: [...prevState.myreviews, ...response.data],
+        isLoading: false
+      }))
+      console.log("received", response);
     } else {
       this.setState({type: item, myreviews: [], awardedReviews: []})
-      response = await pending_reviews(this.props.token)
-      console.log("", response);
-      this.setState({ awardedReviews: response.data });
+      response = await pending_reviews(this.props.token, offsetNum)
+      if (response.status == 1){
+        offsetNum = response.nextOffset
+      }
+      this.setState(prevState => ({
+        awardedReviews: [...prevState.awardedReviews, ...response.data],
+        isLoading: false
+      }))
     }
   }
 
-  
+  loadMore = (selected) => {
+    console.log('selected=========',selected)
+    this.fetchReviews(selected);
+  }
 
   render() {
     return (
       <DrawerWrapper {...this.props}>
-        <View style={{ flex: 1, padding: 20, alignItems: 'center' }}>
+        <View style={{ flex: 1, padding: 10, alignItems: 'center' }}>
           <ScrollView style={styles.container}>
             <View style={styles.picker}>
               <Picker
                 selectedValue={this.state.type}
                 onValueChange={(itemValue, itemIndex) =>
-                  this.fetchReviews(itemValue)
+                  {this.fetchReviews(itemValue);
+                  this.setState({selected: itemValue})}
                 }>
                 <Picker.Item label="Received" value="received" />
                 <Picker.Item label="Awarded" value="awarded" />
@@ -78,6 +103,9 @@ class MyReviews extends React.Component {
 
             <View>
               {this.state.myreviews ? this.state.myreviews.map((item, index) => {
+                let receiveEndDate = moment.unix(item.or_created_at);
+                let receiveDate = moment(receiveEndDate).fromNow();
+                console.log("ffffffffffffffffffff",item.communication_level + item.quality_of_delivered_work + item.recommended_for_others)
                 return (
                   <View style={styles.cardView}>
                     <View style={{ flexDirection: 'row', alignItems: 'flex-start', alignContent: 'flex-start', padding: 10 }}>
@@ -95,7 +123,7 @@ class MyReviews extends React.Component {
                           {' '+item.o_order_id}
                         </Text>
                       </View>
-                      <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
+                      <View style={{ flexDirection: 'row', paddingLeft: 10, flex:1 }}>
                         <Text style={styles.headText}>
                           Review:
                       </Text>
@@ -112,7 +140,7 @@ class MyReviews extends React.Component {
                           count={1}
                           showRating={false}
                           size={16}
-                          defaultRating={(item.communication_level + item.quality_of_delivered_work + item.recommended_for_others) / 3}
+                          defaultRating={(parseInt(item.communication_level) + parseInt(item.quality_of_delivered_work) + parseInt(item.recommended_for_others)) / 3}
                           isDisabled
                         />
                         <Text style={{color: '#ffd700'}}>({item.communication_level})</Text>
@@ -122,7 +150,7 @@ class MyReviews extends React.Component {
                           Date:
                       </Text>
                         <Text style={styles.dataText}>
-                          {' '+Date(item.or_created_at).slice(4, 16)}
+                          {' '+receiveDate}
                         </Text>
                       </View>
                     </View>
@@ -135,10 +163,12 @@ class MyReviews extends React.Component {
               }
               {
                 this.state.awardedReviews ? this.state.awardedReviews.map((item, index) => {
+                  let awardEndDate = moment.unix(item.or_created_at);
+                  let awardDate = moment(awardEndDate).fromNow();
                   return (
                     <View style={styles.cardView}>
                       <View style={{ flexDirection: 'row', alignItems: 'flex-start', alignContent: 'flex-start', padding: 10 }}>
-                        <Text>From</Text>
+                        <Text>To</Text>
                         <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: item.profile }} />
                         <Text>{item.name}</Text>
                       </View>
@@ -152,7 +182,7 @@ class MyReviews extends React.Component {
                             {' '+item.o_order_id}
                           </Text>
                         </View>
-                        <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
+                        <View style={{ flexDirection: 'row', paddingLeft: 10, flex: 1 }}>
                           <Text style={styles.headText}>
                             Review:
                         </Text>
@@ -179,7 +209,7 @@ class MyReviews extends React.Component {
                             Date:
                         </Text>
                           <Text style={styles.dataText}>
-                            {' '+Date(item.or_created_at)}
+                            {' '+awardDate}
                           </Text>
                         </View>
                       </View>
@@ -191,7 +221,9 @@ class MyReviews extends React.Component {
                   </View>
               }
               {
-                this.state.pendingReviews ? this.state.pendingReviews.map((item, index) => {
+                this.state.pendingReviews ? this.state.pendingReviews.map((item, index) => { 
+                  let pendingEndDate = moment.unix(item.or_created_at);
+                  let pendingDate = moment(pendingEndDate).fromNow();
                   return (
                     <View style={styles.cardView}>
                       <View style={{ flexDirection: 'row', alignItems: 'flex-start', alignContent: 'flex-start', padding: 10 }}>
@@ -236,7 +268,7 @@ class MyReviews extends React.Component {
                             Date:
                         </Text>
                           <Text style={styles.dataText}>
-                            {' '+Date(item.or_created_at)}
+                            {' '+pendingDate}
                           </Text>
                         </View>
                       </View>
@@ -247,6 +279,13 @@ class MyReviews extends React.Component {
                     <Text style={{ textAlign: 'center', marginVertical: 10 }}>Nothing yet to show!</Text>
                   </View>
               }
+              <View style={[styles.cardView, {justifyContent:'center', alignItems:'center', marginBottom: 20, paddingVertical: 15}]}>
+                <TouchableOpacity onPress={() => this.loadMore(this.state.selected)} style={styles.loadMoreBT}>
+                  <Text style={styles.loadMoreText}>
+                    LOAD MORE
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </ScrollView>
         </View>
@@ -280,13 +319,13 @@ const styles = StyleSheet.create({
   },
   picker: {
     height: 50,
-    width: Dimensions.get('window').width / 1.2,
+    width: Dimensions.get('window').width / 1.15,
     borderWidth: 1,
     borderColor: '#748F9E',
     borderRadius: 50
   },
   cardView: {
-    width: Dimensions.get('window').width / 1.2,
+    width: Dimensions.get('window').width / 1.15,
     borderColor: '#748F9E',
     borderWidth: 1,
     borderRadius: 15,
@@ -294,9 +333,23 @@ const styles = StyleSheet.create({
   },
   headText: {
     fontWeight: 'bold',
-    color: '#748f9e'
+    color: '#748f9e',
+    flexWrap: 'wrap'
   },
   dataText: {
     color: '#748f9e'
+  },
+  loadMoreBT: {
+    width: 300,
+    height: 40,
+    backgroundColor: '#10a2ef',
+    justifyContent: 'center',
+    alignItems:'center',
+    borderRadius: 5
+  },
+  loadMoreText:{
+    color: '#fff',
+    fontSize: 18,
+    textAlign: 'center'
   }
 });

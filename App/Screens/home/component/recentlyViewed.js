@@ -65,6 +65,7 @@ const RECENTLY_VIEWED = [
             renderItem={({item}) => (
               <TouchableOpacity
               onPress={()=>this.props.navigation.navigate('RootPage',{
+                isreview:true,
                 token:this.props.token,
                 root_id:item.r_id,
                 user_id:item.r_user_id

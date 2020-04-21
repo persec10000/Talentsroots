@@ -79,34 +79,41 @@ class Details extends React.Component {
     }
 
     componentDidMount = async () => {
-        console.log("this.props.navigation.state.params.orderDetails", this.props.navigation.state.params.orderDetails)
-        this.setState(prevState => ({
-            details: [...prevState.details, this.props.navigation.state.params.orderDetails]
-        }));
         this.setState({ loader: true })
-        let history = await orderHistory(this.props.token, this.state.orderId)
-        console.log("============>>>>>>>>>>>>>>", history)
-        if (history.status == 1) {
-            console.log("in history .................", history.status)
-            this.setState({ loader: false })
-            // arr.push(history.data)
-            history.data.r_title && this.setState({ t_r_title: history.data.r_title, t_r_root_image: history.data.rf_file_name, t_name: history.data.username, t_sold_on: history.data.o_created_at, t_order_id: history.data.order_id })
-            this.setState({ history: history.data.history })
+        this.focusListener = this.props.navigation.addListener('didFocus', async() => {
+            this.setState({ loader: true })
+            console.log("this.props.navigation.state.params.orderDetails", this.props.navigation.state.params.orderDetails)
+            // this.setState(prevState => ({
+            //     details: [...prevState.details, this.props.navigation.state.params.orderDetails]
+            // }));
+            this.setState({
+                details: this.props.navigation.state.params.orderDetails
+            });
+            let history = await orderHistory(this.props.token, this.state.orderId)
+            console.log("============>>>>>>>>>>>>>>", history)
+            if (history.status == 1) {
+                console.log("in history .................", history.status)
+                this.setState({ loader: false })
+                // arr.push(history.data)
+                history.data.r_title && this.setState({ t_r_title: history.data.r_title, t_r_root_image: history.data.rf_file_name, t_name: history.data.username, t_sold_on: history.data.o_created_at, t_order_id: history.data.order_id })
+                this.setState({ history: history.data.history })
 
-            console.log("this.state.history", this.state.history, this.state.history.length)
-        }
-        this.state.history.map((item) => {
-            if (item.type == 0 || item.type == 7) {
-                this.setState({ orderCancel: true, false: true })
-            } else if (item.type == 2) {
-                this.setState({ orderDelivered: true })
-            }else if(item.type == 6 || item.type == 7){
-                this.setState({ deliveryDescription: false})
+                console.log("this.state.history", this.state.history, this.state.history.length)
             }
+            this.state.history.map((item) => {
+                if (item.type == 0 || item.type == 7) {
+                    this.setState({ orderCancel: true, false: true })
+                } else if (item.type == 2) {
+                    this.setState({ orderDelivered: true })
+                }else if(item.type == 6 || item.type == 7){
+                    this.setState({ deliveryDescription: false})
+                }
+            })
         })
-
     }
-
+    componentWillUnmount() {
+        this.focusListener.remove();
+      }
     cancelOrder = async () => {
         let response = await orderCancel(
             this.props.token,
@@ -341,21 +348,22 @@ class Details extends React.Component {
         } catch (err) {
             console.warn(err);
         }
-
     }
-
-
-
 
     render() {
         console.log("orderDetails", this.props.navigation.state.params.orderDetails, this.props.navigation.state.params.from)
+        let total = this.state.details.o_amount + this.state.details.o_processing_fees
+        console.log("this.state.loader",this.state.loader)
         return (
             <DrawerWrapper {...this.props}>
+                {/* {ismount?
+                <ActivityIndicator size="large" color="#10A2EF" />
+                : */}
                 <ScrollView>
                     {
                         !this.state.loader
                             ?
-                            <View style={{ padding: 20, alignItems: 'center' }}>
+                            <View style={{ padding: 10, alignItems: 'center' }}>
                                 {
                                     this.props.type == 1 ?
                                         <View style={styles.cardView}>
@@ -364,37 +372,30 @@ class Details extends React.Component {
                                         :
                                         null
                                 }
-                                {
-                                    this.state.details.map((item, index) => {
-                                        console.log("]]]", item)
-                                        let total = item.o_amount + item.o_processing_fees
-                                        return (
-                                            <View style={styles.container}>
-                                                <View style={{ alignContent: 'center', alignItems: 'center' }}>
-                                                    <Image style={{ height: 150, width: 150 }} source={{ uri: item.r_root_image ? item.r_root_image : this.state.t_r_root_image }} />
-                                                </View>
-                                                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                                    <Text style={{ fontSize: 20, width: 200, fontWeight: 'bold', color: '#748f9e' }}>{item.r_title ? item.r_title : this.state.t_r_title}</Text>
-                                                    <Text style={{ color: '#2ec09c', fontSize: 20 }}>${total}</Text>
-                                                </View>
-                                                <View style={{ flexDirection: 'row' }}>
-                                                    <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: 'https://cdn.talentsroot.com/upload/profile/' + item.profile }} />
-                                                    <View style={{ marginTop: 10, flexDirection: 'row' }}>
-                                                        <Text style={{ color: '#748f9e', fontWeight: '900' }}>{this.props.navigation.state.params.from == "sales" ? "Buyer:" : "Seller:"} </Text>
-                                                        <Text style={{ color: '#748f9e', fontWeight: '900' }}>{item.name ? item.name : this.state.t_name}</Text>
-                                                    </View>
-                                                </View>
-                                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
-                                                    <Text style={{ color: '#748f9e', fontWeight: '500' }}>Order #{item.o_order_id ? item.o_order_id : this.state.t_order_id}</Text>
-                                                    <Text style={{ color: '#748f9e', fontWeight: '500' }}>{item.sold_on ? item.sold_on : this.state.t_sold_on}</Text>
-                                                </View>
-                                            </View>
-                                        )
-                                    })
-                                }
+                                <View style={styles.container}>
+                                    <View style={{ alignContent: 'center', alignItems: 'center' }}>
+                                        <Image style={{ height: 150, width: 150 }} source={{ uri: this.state.details.r_root_image ? this.state.details.r_root_image : this.state.t_r_root_image }} />
+                                    </View>
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                        <Text style={{ fontSize: 20, width: 200, fontWeight: 'bold', color: '#748f9e' }}>{this.state.details.r_title ? this.state.details.r_title : this.state.t_r_title}</Text>
+                                        <Text style={{ color: '#2ec09c', fontSize: 20 }}>${total}</Text>
+                                    </View>
+                                    <View style={{ flexDirection: 'row' }}>
+                                        <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: 'https://cdn.talentsroot.com/upload/profile/' + this.state.details.profile }} />
+                                        <View style={{ marginTop: 10, flexDirection: 'row' }}>
+                                            <Text style={{ color: '#748f9e', fontWeight: '900' }}>{this.props.navigation.state.params.from == "sales" ? "Buyer:" : "Seller:"} </Text>
+                                            <Text style={{ color: '#748f9e', fontWeight: '900' }}>{this.state.details.name ? this.state.details.name : this.state.t_name}</Text>
+                                        </View>
+                                    </View>
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
+                                        <Text style={{ color: '#748f9e', fontWeight: '500' }}>Order #{this.state.details.o_order_id ? this.state.details.o_order_id : this.state.t_order_id}</Text>
+                                        <Text style={{ color: '#748f9e', fontWeight: '500' }}>{this.state.details.sold_on ? this.state.details.sold_on : this.state.t_sold_on}</Text>
+                                    </View>
+                                </View>
                                 {
                                     this.state.history.length == 0 ? null :
                                         this.state.history.map((item) => {
+                                            console.log("history===========",item)
                                             if (item.type == 5) {
                                                 return (
                                                     <>
@@ -403,7 +404,7 @@ class Details extends React.Component {
                                                                 <View style={{ justifyContent: 'center', backgroundColor: '#ffca30', borderTopLeftRadius: 10, borderBottomStartRadius: 10, width: 60, height: null }}>
                                                                     <Image source={{ uri: 'https://www.talentsroot.com/images/staricon1.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
                                                                 </View>
-                                                                <View style={{ display: 'flex', marginLeft: 10, padding: 20 }}>
+                                                                <View style={{ display: 'flex', marginLeft: 10, padding: 10 }}>
                                                                     <Text style={{ fontSize: 20, marginVertical: 10, width: 200 }}>{item.data.title}</Text>
 
                                                                     <Text>Feedback Message:</Text>
@@ -447,9 +448,9 @@ class Details extends React.Component {
                                                     <View>
                                                         <View style={[styles.container, { flexDirection: 'row', marginTop: 20, paddingHorizontal: 0, paddingVertical: 0 }]}>
                                                             <View style={{ justifyContent: 'center', backgroundColor: '#2ec09c', borderTopLeftRadius: 10, borderBottomStartRadius: 10, width: 60, height: null }}>
-                                                                <Image source={{ uri: 'https://www.talentsroot.com /images/accepted.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
+                                                                <Image source={{ uri: 'https://www.talentsroot.com/images/accepted.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
                                                             </View>
-                                                            <View style={{ display: 'flex', marginLeft: 10, padding: 20 }}>
+                                                            <View style={{ display: 'flex', marginLeft: 10, padding: 10 }}>
                                                                 <Text style={{ fontSize: 20, marginVertical: 10, width: 200 }}>{item.data.title}</Text>
                                                                 <Text style={{ alignSelf: 'flex-end', color: '#748f9e', marginTop: 8 }}>{item.data.created_at}</Text>
                                                             </View>
@@ -462,10 +463,10 @@ class Details extends React.Component {
                                                     <View>
                                                         <View style={[styles.container, { flexDirection: 'row', marginTop: 20, paddingHorizontal: 0, paddingVertical: 0 }]}>
                                                             <View style={{ justifyContent: 'center', backgroundColor: '#10a2ef', borderTopLeftRadius: 10, borderBottomStartRadius: 10, width: 60, height: null }}>
-                                                                <Image source={{ uri: 'https://www.talentsroot.com /images/delivered.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
+                                                                <Image source={{ uri: 'https://www.talentsroot.com/images/delivered.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
                                                             </View>
-                                                            <View style={{ display: 'flex', marginLeft: 10, padding: 20 }}>
-                                                                <Text style={{ fontSize: 20, marginVertical: 10, width: 200 }}>{item.data.title}</Text>
+                                                            <View style={{ display: 'flex', marginLeft: 10, padding: 10 }}>
+                                                                <Text style={{ fontSize: 20, marginVertical: 10}}>{item.data.title}</Text>
                                                                 <Text style={{ fontSize: 20, marginVertical: 10 }}>{item.data.message}</Text>
                                                                 {item.data.file ? <Text style={{ fontSize: 20, marginVertical: 10 }}>Attachments</Text> : null}
                                                                 {item.data.file ?
@@ -492,10 +493,10 @@ class Details extends React.Component {
                                                     <View>
                                                         <View style={[styles.container, { flexDirection: 'row', marginTop: 20, paddingHorizontal: 0, paddingVertical: 0 }]}>
                                                             <View style={{ justifyContent: 'center', backgroundColor: '#2ec09c', borderTopLeftRadius: 10, borderBottomStartRadius: 10, width: 60, height: null }}>
-                                                                <Image source={{ uri: 'https://www.talentsroot.com /images/accepted.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
+                                                                <Image source={{ uri: 'https://www.talentsroot.com/images/accepted.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
                                                             </View>
-                                                            <View style={{ display: 'flex', marginLeft: 10, padding: 20 }}>
-                                                                <Text style={{ fontSize: 20, marginVertical: 10, width: 200 }}>{item.data.title}</Text>
+                                                            <View style={{ display: 'flex', marginLeft: 10, padding: 10 }}>
+                                                                <Text style={{ fontSize: 20, marginVertical: 10}}>{item.data.title}</Text>
                                                                 <Text style={{ alignSelf: 'flex-end', color: '#748f9e', marginTop: 8 }}>{item.data.created_at}</Text>
                                                             </View>
                                                         </View>
@@ -507,10 +508,10 @@ class Details extends React.Component {
                                                     <View>
                                                         <View style={[styles.container, { flexDirection: 'row', marginTop: 20, paddingHorizontal: 0, paddingVertical: 0 }]}>
                                                             <View style={{ justifyContent: 'center', backgroundColor: '#2ec09c', borderTopLeftRadius: 10, borderBottomStartRadius: 10, width: 60, height: null }}>
-                                                                <Image source={{ uri: 'https://www.talentsroot.com /images/accepted.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
+                                                                <Image source={{ uri: 'https://www.talentsroot.com/images/accepted.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
                                                             </View>
-                                                            <View style={{ display: 'flex', marginLeft: 10, padding: 20 }}>
-                                                                <Text style={{ fontSize: 20, marginVertical: 10, width: 200 }}>{item.data.title}</Text>
+                                                            <View style={{ display: 'flex', marginLeft: 10, padding: 10 }}>
+                                                                <Text style={{ fontSize: 20, marginVertical: 10}}>{item.data.title}</Text>
                                                                 <Text style={{ alignSelf: 'flex-end', color: '#748f9e', marginTop: 8 }}>{item.data.created_at}</Text>
                                                             </View>
                                                         </View>
@@ -522,26 +523,26 @@ class Details extends React.Component {
                                                     <View>
                                                         <View style={[styles.container, { flexDirection: 'row', marginTop: 20, paddingHorizontal: 0, paddingVertical: 0 }]}>
 
-                                                            <View style={{ flexDirection: 'row' }}>
+                                                            <View style={{ flex: 1, flexDirection: 'row'}}>
                                                                 {item.type == 0 || item.type == 2 ?
                                                                     <>
                                                                         {item.type == 0 ?
                                                                             <>
                                                                                 <View style={{ justifyContent: 'center', backgroundColor: '#ff6060', borderTopLeftRadius: 10, borderBottomStartRadius: 10, width: 60, height: null }}>
-                                                                                    <Image source={{ uri: 'https://www.talentsroot.com /images/accepted.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
+                                                                                    <Image source={{ uri: 'https://www.talentsroot.com/images/accepted.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
                                                                                 </View>
-                                                                                <View style={{ display: 'flex', marginLeft: 10, padding: 20 }}>
-                                                                                    <Text style={{ fontSize: 20, marginVertical: 10, width: 200 }}>{item.data.title}</Text>
+                                                                                <View style={{ flex:1 , marginLeft: 10, padding: 5 }}>
+                                                                                    <Text style={{ fontSize: 20, marginVertical: 10}}>{item.data.title}</Text>
                                                                                     <Text style={{ alignSelf: 'flex-end', color: '#748f9e', marginTop: 8 }}>{item.data.created_at}</Text>
                                                                                 </View>
                                                                             </> :
                                                                             <>
                                                                                 <View style={{ justifyContent: 'center', backgroundColor: '#10a2ef', borderTopLeftRadius: 10, borderBottomStartRadius: 10, width: 60, height: null }}>
-                                                                                    <Image source={{ uri: 'https://www.talentsroot.com /images/delivered.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
+                                                                                    <Image source={{ uri: 'https://www.talentsroot.com/images/delivered.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
                                                                                 </View>
-                                                                                <View style={{ display: 'flex', marginLeft: 10, padding: 20 }}>
-                                                                                    <Text style={{ fontSize: 20, marginVertical: 10, width: 200 }}>{item.data.title}</Text>
-                                                                                    <Text style={{ fontSize: 20, marginVertical: 10 }}>{item.data.message}</Text>
+                                                                                <View style={{flex: 1, marginLeft: 10, padding: 10}}>
+                                                                                    <Text style={{ fontSize: 20, marginVertical: 10, flexShrink: 1}}>{item.data.title}</Text>
+                                                                                    <Text style={{ fontSize: 20, marginVertical: 10 , flexShrink: 1}}>{item.data.message}</Text>
                                                                                     <Text style={{ fontSize: 20, marginVertical: 10 }}>Attachments</Text>
                                                                                     {item.data.file ?
                                                                                         item.data.file.map((data) => {
@@ -565,37 +566,53 @@ class Details extends React.Component {
                                                                     <>
                                                                         <View style={{ justifyContent: 'center', backgroundColor: '#10a2ef', borderTopLeftRadius: 10, borderBottomStartRadius: 10, width: 60, height: null }}>
                                                                             {item.type == 1 || item.type == 2 ?
-                                                                                <Image source={{ uri: 'https://www.talentsroot.com /images/sent.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
+                                                                                <Image source={{ uri: 'https://www.talentsroot.com/images/sent.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
                                                                                 :
-                                                                                <Image source={{ uri: 'https://www.talentsroot.com /images/accepted.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
+                                                                                <Image source={{ uri: 'https://www.talentsroot.com/images/accepted.png' }} style={{ height: 50, width: 50, padding: 5, marginLeft: 4 }} />
                                                                             }
                                                                         </View>
-                                                                        <View style={{ display: 'flex', marginLeft: 10, padding: 20 }}>
+                                                                        <View style={{ flex:1, marginLeft: 10}}>
                                                                             <Text style={{ fontSize: 20, marginVertical: 10 }}>{item.data.title}</Text>
-                                                                            <View style={{ marginLeft: 10 }}>
-                                                                                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                                                                    <Text style={{ fontWeight: 'bold', fontSize: 18 }}>Description : </Text>
-                                                                                    <Text style={{ fontWeight: 'bold', fontSize: 18 }}>{item.data.message}</Text>
+                                                                            <View style={{ marginLeft: 10, paddingRight: 5 }}>
+                                                                                <View style={{ flexDirection: 'row'}}>
+                                                                                    <View style={{width: 100}}>
+                                                                                        <Text style={{ fontWeight: 'bold', fontSize: 16}}>Description : </Text>
+                                                                                    </View>
+                                                                                    <View style={{flex:1}}>
+                                                                                        <Text style={{ fontWeight: 'bold', fontSize: 14, flexWrap:'wrap' }}>{item.data.message}</Text>
+                                                                                    </View>
                                                                                 </View>
-                                                                                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                                                                    <Text style={{ fontWeight: 'bold', fontSize: 18 }}>Delivery :</Text>
-                                                                                    <Text style={{ fontSize: 18 }}>{item.data.day} day</Text>
+                                                                                <View style={{ flexDirection: 'row'}}>
+                                                                                    <View style={{width: 100}}>
+                                                                                        <Text style={{ fontWeight: 'bold', fontSize: 16 }}>Delivery :</Text>
+                                                                                    </View>
+                                                                                    <View style={{flex:1}}>
+                                                                                        <Text style={{ fontSize: 14, flexWrap:'wrap'  }}>{item.data.day} day</Text>
+                                                                                    </View>
                                                                                 </View>
                                                                                 {item.type == 8 ? <View>
-                                                                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                                                                        <Text style={{ fontWeight: 'bold', fontSize: 18 }}>Price :</Text>
-                                                                                        <Text style={{ fontSize: 18 }}>${item.data.price}</Text>
+                                                                                    <View style={{ flexDirection: 'row'}}>
+                                                                                        <View style={{width: 100}}>
+                                                                                            <Text style={{ fontWeight: 'bold', fontSize: 16 }}>Price :</Text>
+                                                                                        </View>
+                                                                                        <View style={{flex:1}}>
+                                                                                            <Text style={{ fontSize: 14, flexWrap:'wrap' }}>${item.data.price}</Text>
+                                                                                        </View>
                                                                                     </View>
                                                                                 </View> : null}
-                                                                                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                                                                    <Text style={{ fontWeight: 'bold', fontSize: 18 }}>Status :</Text>
-                                                                                    <Text style={{ fontSize: 18 }}>{item.data.status}</Text>
+                                                                                <View style={{ flexDirection: 'row'}}>
+                                                                                    <View style={{width: 100}}>
+                                                                                        <Text style={{ fontWeight: 'bold', fontSize: 16 }}>Status :</Text>
+                                                                                    </View>
+                                                                                    <View style={{flex:1}}>
+                                                                                        <Text style={{ fontSize: 14 }}>{item.data.status}</Text>
+                                                                                    </View>
                                                                                 </View>
                                                                             </View>
                                                                             {item.data.status == "waiting" ? <TouchableOpacity style={[styles.confirm, { backgroundColor: '#ff6060', marginTop: 8 }]} onPress={() => { item.type == 1 ? this.cancelAction() : this.cancelCustom() }}>
                                                                                 <Text style={{ color: 'white' }}>Cancel Request</Text>
                                                                             </TouchableOpacity> : null}
-                                                                            <Text style={{ alignSelf: 'flex-end', color: '#748f9e', marginTop: 8 }}>{item.data.created_at}</Text>
+                                                                            <Text style={{ alignSelf: 'flex-end', color: '#748f9e', marginTop: 8, paddingRight: 5 }}>{item.data.created_at}</Text>
                                                                         </View>
                                                                     </>
                                                                 }
@@ -795,7 +812,7 @@ class Details extends React.Component {
                                         deviceHeight={heightPercentageToDP(100)}
                                         backdropColor='black' >
 
-                                        <View style={{ flexDirection: 'column', padding: 20, alignContent: 'center', alignSelf: 'center', backgroundColor: 'white' }}>
+                                        <View style={{ flexDirection: 'column', padding: 0, alignContent: 'center', alignSelf: 'center', backgroundColor: 'white' }}>
                                             <View style={{ borderBottomWidth: 1, borderBottomColor: '#7F7F7F' }}>
                                                 <Text style={{ color: 'red', fontSize: 30 }}>Extend Delivery Time</Text>
                                             </View>
@@ -965,6 +982,7 @@ class Details extends React.Component {
                                 </View>
                             </View> : <ActivityIndicator size="large" color="#10A2EF" />}
                 </ScrollView>
+            {/* } */}
             </DrawerWrapper>
         )
     }
@@ -982,7 +1000,7 @@ const styles = StyleSheet.create({
     container: {
         paddingVertical: 20,
         paddingHorizontal: 10,
-        width: Dimensions.get('window').width / 1.2,
+        width: Dimensions.get('window').width / 1.1,
         borderWidth: 1,
         borderRadius: 10,
         borderColor: '#748f9e',
@@ -990,7 +1008,7 @@ const styles = StyleSheet.create({
     button: {
         padding: 10,
         marginTop: 10,
-        width: Dimensions.get('window').width / 1.2,
+        width: Dimensions.get('window').width / 1.1,
         backgroundColor: '#ff6060',
         alignContent: 'center',
         alignContent: 'center',
@@ -1008,7 +1026,7 @@ const styles = StyleSheet.create({
     button2: {
         padding: 10,
         marginTop: 10,
-        width: Dimensions.get('window').width / 1.2,
+        width: Dimensions.get('window').width / 1.1,
         alignContent: 'center',
         alignContent: 'center',
         borderRadius: 10,
@@ -1048,7 +1066,7 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         marginVertical: 10,
         height: 100,
-        width: Dimensions.get('window').width / 1.3,
+        width: Dimensions.get('window').width / 1.2,
         padding: 10
     },
     waterMarkModel: {

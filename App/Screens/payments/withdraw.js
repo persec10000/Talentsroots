@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from 'react';
+import React, { Fragment, useState, useEffect } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -20,7 +20,33 @@ const Withdraw = (props) => {
   const [email, setemail] = useState(props.profileData.email ? props.profileData.email : '')
   const [amount, setAmount] = useState('')
   const [payPal, setPayPal] = useState(false)
+  const [payoneer, setPayoneer] = useState(false)
   const [cashu, setCashu] = useState(false)
+  const country = props.profileData.country
+  useEffect(() => {
+    console.log("profileData==========",props.profileData)
+  }, [])
+
+  useEffect(() => {
+    if (payPal){
+      setCashu(false);
+      setPayoneer(false);
+    }
+  }, [payPal])
+
+  useEffect(() => {
+    if (cashu){
+      setPayPal(false);
+      setPayoneer(false);
+    }
+  }, [cashu])
+
+  useEffect(() => {
+    if (payoneer){
+      setCashu(false);
+      setPayPal(false);
+    }
+  }, [payoneer])
 
   const withdraw = async() => {
     if(email == ''){
@@ -29,7 +55,18 @@ const Withdraw = (props) => {
     }else if(amount < 15){
       Alert.alert("The amount must be higher than $15")
     }else{
-      let response = await withdrawMoney(props.token, cashu ? 2 : 1, email, amount)
+      let gateway;
+      if (payPal){
+        gateway = 1
+      }
+      else if (cashu) {
+        gateway = 2
+      }
+      else if (payoneer) {
+        gateway = 3
+      }
+      let response = await withdrawMoney(props.token, gateway, email, amount)
+      console.log("result===============", response)
       return Alert.alert(
         '',
         response.message,
@@ -44,23 +81,45 @@ const Withdraw = (props) => {
 
   return (
     <ScrollView style={styles.container}>
+      <View style={{marginVertical: 10}}>
+        <Text style={{fontSize:16, fontWeight:'700'}}>
+          Where do you want to transfer the payment?
+        </Text>
+      </View>
       <View style={styles.button}>
         <CheckBox
         value={payPal}
-        onValueChange={() => setPayPal(!payPal)} />
-        <Image style={{ marginLeft: 30, height: 30, width: 60 }} source={require('../../assets/icons/paypal.png')} />
+        onValueChange={() => {setPayPal(!payPal)}} />
+        <View style={{alignItems:'center', marginLeft: 70}}>
+          <Image style={{ marginLeft: 30, height: 30, width: 60 }} source={require('../../assets/icons/paypal.png')} />
+        </View>
       </View>
+      {(country == 'India' || country == 'Pakistan' || country == 'Egypt')&&
+      <View style={styles.button}>
+        <CheckBox
+        value={payoneer}
+        onValueChange={() => setPayoneer(!payoneer)} />
+        <View style={{alignItems:'center', marginLeft: 70}}>
+          <Image style={{ marginLeft: 30, height: 30, width: 60 }} source={require('../../assets/icons/payoneer.png')} />
+        </View>
+      </View>
+      }
+      {(country == 'Palestine' || country == 'Lebanon' || country == 'Egypt'|| country == 'Iraq'|| country == 'Turkey'|| country == 'Algeria'|| country == 'Egypt'|| country == 'Morocco'|| country == 'Tunis'|| country == 'Libya')&&
       <View style={styles.button}>
         <CheckBox 
         value={cashu}
         onValueChange={() => setCashu(!cashu)}/>
-        <Image style={{ marginLeft: 30, height: 30, width: 60 }} 
-          resizeMode={'contain'} 
-          source={require('../../assets/icons/cashu.png')} />
+        <View style={{alignItems:'center', marginLeft: 70}}>
+          <Image style={{ marginLeft: 30, height: 30, width: 60 }} 
+            resizeMode={'contain'} 
+            source={require('../../assets/icons/cashu.png')} />
+        </View>
       </View>
+      }
       <TextInput
         style={styles.textInput}
         placeholder={email}
+        value={email}
         onChangeText={(text) => { setemail(text) }}
       />
       <TextInput

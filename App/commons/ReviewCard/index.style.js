@@ -13,7 +13,7 @@ export default StyleSheet.create({
     },
     reviewCardUpper: {
         flexDirection: 'row',
-        alignItems: 'flex-start',
+        // alignItems: 'flex-start',
         marginBottom: 6,
     },
     reviewCardAvatarContainer: {

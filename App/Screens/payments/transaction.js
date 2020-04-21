@@ -23,7 +23,7 @@ import { connect } from "react-redux";
 import { transaction } from '../../services/payments/transaction'
 
 
-
+let offsetNum = 5;
 class Transaction extends Component {
     constructor(props) {
         super(props);
@@ -33,50 +33,68 @@ class Transaction extends Component {
     }
     componentDidMount = async () => {
         console.disableYellowBox = true;
-        const response = await transaction(this.props.token)
+        const response = await transaction(this.props.token, 0)
         this.setState({ transactions: response.data })
         console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', response)
+    }
+    loadMore = async() => {
+        const response = await transaction(this.props.token, offsetNum)
+        if (response.status == 1){
+            offsetNum = offsetNum + 5
+        }
+        this.setState(prevState => ({
+            transactions: [...prevState.transactions, ...response.data]
+        }))
     }
     render() {
         return (
             <ScrollView style={styles.container}>
                 {this.state.transactions ? this.state.transactions.map((item, index) => {
                     return (
-                        <TouchableOpacity onPress={() => { this.props.navigation.navigate('OrderDetails', { orderDetails: item }) }}>
+                        // <TouchableOpacity onPress={() => { this.props.navigation.navigate('OrderDetails', { orderDetails: item }) }}>
                         <View style={styles.transaction_wrapper}>
                             {/* <View style={styles.transaction_detail}>
-                    <Text style={styles.transaction_text}>{item.wlt_detail}</Text>
-                    <Text style={styles.transaction_price}>{`${item.wlt_amount} $`}</Text>
+                            <Text style={styles.transaction_text}>{item.wlt_detail}</Text>
+                            <Text style={styles.transaction_price}>{`${item.wlt_amount} $`}</Text>
+                                    </View>
+                            <Text style={styles.transaction_date}>{Date(item.wlt_created_at)}</Text> */}
+                            <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
+                                <Text style={styles.headText}>
+                                    Description:
+                                </Text>
+                                <View style={{flex:1}}>
+                                    <Text style={styles.dataText}>
+                                    {' '+item.wlt_detail}
+                                    </Text>
+                                </View>
                             </View>
-                    <Text style={styles.transaction_date}>{Date(item.wlt_created_at)}</Text> */}
-                    <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
-                        <Text style={styles.headText}>
-                          Description:
-                      </Text>
-                        <Text style={styles.dataText}>
-                          {' '+item.wlt_detail}
-                        </Text>
-                      </View>
-                      <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
-                        <Text style={styles.headText}>
-                          Date:
-                      </Text>
-                        <Text style={styles.dataText}>
-                          {' '+item.wlt_created_at}
-                        </Text>
-                      </View>
-                      <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
-                        <Text style={styles.headText}>
-                          Amount:
-                      </Text>
-                        <Text style={styles.dataText}>
-                          {' '+item.wlt_amount+'$'}
-                        </Text>
-                      </View>
+                            <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
+                                <Text style={styles.headText}>
+                                    Date:
+                                </Text>
+                                <Text style={styles.dataText}>
+                                {' '+item.wlt_created_at}
+                                </Text>
+                            </View>
+                            <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
+                                <Text style={styles.headText}>
+                                    Amount:
+                                </Text>
+                                <Text style={styles.dataText}>
+                                {' '+item.wlt_amount+'$'}
+                                </Text>
+                            </View>
                         </View>
-                        </TouchableOpacity>
+                        // </TouchableOpacity>
                     );
                 }) : <Text style={styles.transaction_date}>No Transaction</Text>}
+                <View style={[styles.roots_wrapper, {justifyContent: 'center', alignItems: 'center', paddingVertical: 15}]}>
+                  <TouchableOpacity onPress={() => this.loadMore()} style={styles.loadMoreBT}>
+                    <Text style={styles.loadMoreText}>
+                      LOAD MORE
+                    </Text>
+                  </TouchableOpacity>
+                </View>
             </ScrollView>
         );
     }
@@ -128,9 +146,28 @@ const styles = StyleSheet.create({
     headText: {
         fontWeight: 'bold',
         color: '#748f9e'
-      },
-      dataText: {
+    },
+    dataText: {
         color: '#748f9e',
-        width: 200  
-      },
+        flexWrap: 'wrap'
+    },
+    roots_wrapper: {
+        borderWidth: 1,
+        borderRadius: 10,
+        marginBottom: 10,
+        borderColor: '#EDF1F4',
+    },
+    loadMoreBT: {
+        width: 300,
+        height: 40,
+        backgroundColor: '#10a2ef',
+        justifyContent: 'center',
+        alignItems:'center',
+        borderRadius: 5
+    },
+    loadMoreText:{
+        color: '#fff',
+        fontSize: 18,
+        textAlign: 'center'
+    }
 });

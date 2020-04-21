@@ -23,6 +23,7 @@ export default StyleSheet.create({
         padding: 10,
         marginTop: 10,
         justifyContent: 'center',
+        // alignItems: 'center',
         alignContent: 'center'
     },
     doshline: {

@@ -35,6 +35,7 @@ RootCard = props => {
           <>
             <TouchableOpacity
               onPress={() => props.navigation.navigate('RootPage', {
+                isreview: true,
                 token: props.token,
                 root_id: props.r_id,
                 user_id: props.r_user_id
@@ -48,6 +49,7 @@ RootCard = props => {
             </TouchableOpacity>
             <Text
               onPress={() => props.navigation.navigate('RootPage', {
+                isreview: true,
                 token: props.token,
                 root_id: props.r_id,
                 user_id: props.r_user_id

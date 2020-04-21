@@ -57,6 +57,7 @@ const SearchBar = (props) => {
                         onChangeText={ value => {
                             SetSearchTerm(value)
                         }}
+                        onSubmitEditing={handleSearch}
                         style={{
                             flex: 5,
                         }}

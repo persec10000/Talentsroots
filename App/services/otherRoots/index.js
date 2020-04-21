@@ -1,6 +1,6 @@
 import config from '../../config'
 
-  export const other_roots = async (token,user_id) => {
+  export const other_roots = async (token,root_id, user_id) => {
       console.log('other root of id',user_id)
     return await fetch(config.otherRootsDetail,{
       method: "POST",
@@ -10,7 +10,8 @@ import config from '../../config'
           "auth-token": token
         },
       body : JSON.stringify({
-        id : user_id
+        root_id: root_id,
+        user_id : user_id
       })
     })
     .then(response => {

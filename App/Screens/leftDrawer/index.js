@@ -7,6 +7,7 @@ import { start_vacation } from '../../services/home/index';
 import { getUserBalance } from '../../services/home/index';
 import {log_out} from '../../services/auth/index';
 import { connect } from 'react-redux';
+import moment from 'moment';
 
 const LeftDrawer = (props) => {
   
@@ -23,8 +24,6 @@ const LeftDrawer = (props) => {
     deviceToken = await AsyncStorage.getItem('device_id');
     let response = await log_out(props.login.userToken, deviceToken)
     console.log("response======>",response)
-    console.log('isonline===========>',props.profileData)
-    console.log("socket========================>",props.screenProps);
     if (response.status == 1){ 
       await AsyncStorage.removeItem('username');
       await AsyncStorage.removeItem('password');
@@ -36,13 +35,27 @@ const LeftDrawer = (props) => {
   };
 
   const startVacation = async (reason, date) => {
-    let dateTime = date.getTime();
-    console.log(")))))))))))", date, dateTime)
-    let response = await start_vacation(props.login.userToken, reason, date)
+    let dateTime = date.getTime()/1000;
+    // let unixTime = moment.unix(date)
+    // console.log(")))))))))))", date, unixTime)
+    if (isOnVacation){
+      response = await start_vacation(props.login.userToken, '', '')
+    }
+    else {
+      response = await start_vacation(props.login.userToken, reason, dateTime)
+    }
+    let response = await start_vacation(props.login.userToken, reason, dateTime)
     console.log(response);
     if(response.status == 1){
-      setIsOnVacation(true)
-      Alert.alert('Vacation mode activated...')
+      console.log("ddddddddddd",!setIsOnVacation);
+      setIsOnVacation(!isOnVacation)
+      if (isOnVacation){
+        Alert.alert('Vacation mode deactivated...')
+      }
+      else {
+        Alert.alert('Vacation mode activated...')
+      }
+      
     }else{
       return(
         Alert.alert('Something went wrong, Please try again later...')
@@ -127,7 +140,11 @@ const LeftDrawer = (props) => {
           )}
           <View>
             <TouchableOpacity style={{ backgroundColor: '#10A2EF', height: 40, width: 250 }} onPress={() => startVacation(reason, date)}>
+              {isOnVacation?
+              <Text style={{ textAlign: 'center', color: 'white', fontWeight: 'bold', marginTop: 10 }}>Deactivate</Text>
+              :
               <Text style={{ textAlign: 'center', color: 'white', fontWeight: 'bold', marginTop: 10 }}>Activate</Text>
+              }
             </TouchableOpacity>
           </View>
         </View>
@@ -175,6 +192,7 @@ const LeftDrawer = (props) => {
         {
           props.login.type === 0 ? 
           <>
+          {console.log("vacation=========",isOnVacation)}
             <View style={{ flexDirection: 'row', marginTop: 5 }}>
               <Switch
                 onResponderStart={() => {

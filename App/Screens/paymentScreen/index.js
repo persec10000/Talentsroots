@@ -173,8 +173,8 @@ const PaymentScreen = (props) => {
                       source={{uri:passedRootDetails.r_image}}
                     />
                   </View>
-                  <View style={{ display: 'flex', flexDirection: 'row' }}>
-                    <View style={{ flex: 3 }}>
+                  <View style={{flexDirection: 'row' }}>
+                    <View style={{ flex: 4 }}>
                       <Text style={styles.CardTitleStyle}>
                         {passedRootDetails.r_title}
                       </Text>
@@ -197,13 +197,13 @@ const PaymentScreen = (props) => {
                     </View>
                   </View>
                   <Text style={styles.orderIdTextStyle}>
-                      Order #ID{passedRootDetails.orderId}
+                      Order #{passedRootDetails.orderId}
                   </Text>
                   <View style={styles.doshline} />
                   <View style={styles.tableItem} >
                     <Text style={styles.tableItemTitle}>Delivery days:</Text>
                     <View style={styles.tableItemRightSide}>
-                      <Text style={styles.tableItemRightText}>{passedRootDetails.days} days</Text>
+                      <Text style={styles.tableItemRightText}>{passedRootDetails.delivery_days} days</Text>
                     </View>
                   </View>
                   {
@@ -240,11 +240,11 @@ const PaymentScreen = (props) => {
                     value={couponCode}
                     placeholder='Coupon Code'
                   />
-                  <Button info style={styles.button}>
+                  <TouchableOpacity style={styles.button}>
                     <Text style={styles.buttonText}>
                       APPLY COUPON
                     </Text>
-                  </Button>
+                  </TouchableOpacity>
                 </View>
                 <Image
                   style={styles.securityImageStyle}
@@ -257,14 +257,21 @@ const PaymentScreen = (props) => {
                       <TouchableOpacity success style={styles.paymentsButton} onPress={() => payWithPaypal()}>
                         <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', alignContent: 'center' }}>
                           <View style={[styles.cardView]}>
-                            <Image resizeMode={'contain'} source={{ uri: "https://cdn.talentsroot.com/image/Paypal.png" }} style={{ height: 30, width: 150, padding: 40 }} />
+                            <Image resizeMode={'contain'} source={{ uri: "https://cdn.talentsroot.com/image/Paypal.png" }} style={{ height: 20, width: 150, padding: 25 }} />
                           </View>
                         </View>
                       </TouchableOpacity>
                       <TouchableOpacity primary style={styles.paymentsButton} onPress={() => { setHyperPay(true) }}>
                         <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', alignContent: 'center' }}>
                           <View style={[styles.cardView]}>
-                            <Image resizeMode={'contain'} source={{ uri: "https://cdn.talentsroot.com/image/paynow.png" }} style={{ height: 30, width: 150, padding: 40 }} />
+                            <Image resizeMode={'contain'} source={{ uri: "https://cdn.talentsroot.com/image/paynow.png" }} style={{ height: 20, width: 150, padding: 25 }} />
+                          </View>
+                        </View>
+                      </TouchableOpacity>
+                      <TouchableOpacity primary style={styles.paymentsButton} onPress={() => { setHyperPay(true) }}>
+                        <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', alignContent: 'center' }}>
+                          <View style={[styles.cardView]}>
+                            <Image resizeMode={'contain'} source={{ uri: "https://cdn.talentsroot.com/image/CASHU.png" }} style={{ height: 20, width: 150, padding: 25 }} />
                           </View>
                         </View>
                       </TouchableOpacity>

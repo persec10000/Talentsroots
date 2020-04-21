@@ -11,14 +11,8 @@ import { MenuProvider } from 'react-native-popup-menu';
 import firebase  from 'react-native-firebase';
 import { connect } from 'react-redux';
 import AppStarter from './App/navigation'
-import TimeZone from 'react-native-timezone';
 const App = (props) => {
   useEffect(() => {
-    getTimeZone = async() => {
-      const timeZone = await TimeZone.getTimeZone().then(zone => zone);
-      console.log("timezone====",Intl.DateTimeFormat().resolvedOptions().timeZone)
-    }
-    getTimeZone()
     this.checkPermission();
     this.messageListener();
     async function fetchData() {

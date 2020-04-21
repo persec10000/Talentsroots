@@ -212,6 +212,7 @@ class ChatScreen extends React.Component {
         const messagesArray = this.state.messages;
         this.props.screenProps.on('user_message', (data) => {
             const userMessage = JSON.parse(data)
+            console.log('data=======================',userMessage)
             if (userMessage.type == "chat") {
                 messagesArray.push({
                     message: userMessage.data.message_text,
@@ -252,25 +253,26 @@ class ChatScreen extends React.Component {
                 }
             }
         })
-        eventRead(this.props.navigation.state.params.user.conversation_id, this.props.token)
         let chats = await getChats(this.state.conversation_id, this.props.token);
-        for (let i = 0; i < chats.data.length; i++) {
-            messagesArray.push({
-                message: chats.data[i].message,
-                from_id: chats.data[i].from_user_id,
-                name: chats.data[i].name,
-                data: chats.data[i] && chats.data[i].data && chats.data[i].data.root_id ? chats.data[i].data : '',
-                file: chats.data[i] && chats.data[i].data && chats.data[i].data.file_name ? chats.data[i].data : '',
-                video: chats.data[i] && chats.data[i].data && chats.data[i].data.type == "video/mp4" ? chats.data[i].data : '',
-                created_at: chats.data[i].created_at,
-                profile: chats.data[i].profile,
-                isRead: chats.data[i].read_by_status
+        if (chats.status==1){
+            eventRead(this.state.conversation_id, this.props.token)
+            for (let i = 0; i < chats.data.length; i++) {
+                messagesArray.push({
+                    message: chats.data[i].message,
+                    from_id: chats.data[i].from_user_id,
+                    name: chats.data[i].name,
+                    data: chats.data[i] && chats.data[i].data && chats.data[i].data.root_id ? chats.data[i].data : '',
+                    file: chats.data[i] && chats.data[i].data && chats.data[i].data.file_name ? chats.data[i].data : '',
+                    video: chats.data[i] && chats.data[i].data && chats.data[i].data.type == "video/mp4" ? chats.data[i].data : '',
+                    created_at: chats.data[i].created_at,
+                    profile: chats.data[i].profile,
+                    isRead: chats.data[i].read_by_status
+                })
+            }
+            this.setState({
+                messages: messagesArray
             })
         }
-        this.setState({
-            messages: messagesArray
-        })
-
         if (this.props.type == 0) {
             let rootsArray = []
             let customOfferRoots = await getRoots(this.props.token);
@@ -1135,7 +1137,6 @@ class ChatScreen extends React.Component {
     }
 
     render() {
-        console.log("lastping===============", this.state.last_ping_time)
         return (
             <KeyboardAvoidingView 
                 behavior={Platform.OS === "ios" ? "padding" : null}
@@ -1194,7 +1195,7 @@ class ChatScreen extends React.Component {
                                     <Text style={{ fontSize: 12 }}>Local Time :</Text>
                                     <Text style={{ fontSize: 12, paddingLeft: 2 }}>{this.state.curTime}</Text>
                                 </View>
-                                <Image style={{ color: 'black', marginLeft: 5, height: 15, width: 20 }} source={{ uri: this.props.navigation.state.params.user_data.flag }} />
+                                <Image style={{ marginLeft: 5, height: 15, width: 20 }} source={{ uri: this.props.navigation.state.params.user_data.flag }} />
                             </View>
                         </View>
                         <Menu
@@ -1207,7 +1208,7 @@ class ChatScreen extends React.Component {
                                     style={styles.modalItemStyle}
                                     onSelect={() => this.blockUser()} >
                                     <>
-                                        <Icon name={this.state.blocked ? 'check' : 'ban'} color='grey' size={15} style={{ flex: 1 }} />
+                                        <Icon name={this.state.blocked ? 'check' : 'block'} color='grey' size={15}/>
                                         <Text style={styles.menuItemText}>{this.state.blocked ? 'Unblock' : "Block"}    </Text>
                                     </>
                                 </MenuOption>
@@ -1215,7 +1216,7 @@ class ChatScreen extends React.Component {
                                     style={styles.modalItemStyle}
                                     onSelect={() => this.favouriteUser()} >
                                     <>
-                                        <Icon name='heart' color='grey' size={15} style={{ flex: 1 }} />
+                                        <Icon name='heart' color='grey' size={15}/>
                                         <Text style={styles.menuItemText}>{this.state.addedToFavourites ? 'Remove from favourite' : "Add To Favourites"}    </Text>
                                     </>
                                 </MenuOption>
@@ -1223,7 +1224,7 @@ class ChatScreen extends React.Component {
                                     style={styles.modalItemStyle}
                                     onSelect={() => this.reportAbuse()}>
                                     <>
-                                        <Icon name='exclamation-circle' color='grey' size={15} style={{ flex: 1 }} />
+                                        <FontAwesome name='exclamation-circle' color='grey' size={15} style={{ flex: 1 }} />
                                         <Text style={styles.menuItemText}>Report Abuse</Text>
                                     </>
                                 </MenuOption>
@@ -1351,7 +1352,7 @@ class ChatScreen extends React.Component {
                 </View>
                 <KeyboardAwareScrollView innerRef={ref => this._scrollView = ref} style={{flex:1}}
                     onContentSizeChange={(contentWidth, contentHeight) => {
-                        eventRead(this.props.navigation.state.params.user.conversation_id, this.props.token)
+                        // eventRead(this.props.navigation.state.params.user.conversation_id, this.props.token)
                         this.state.scroll ? null : this._scrollView.scrollToEnd({ animated: true });
                     }}
                 >

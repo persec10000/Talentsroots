@@ -31,7 +31,8 @@ class Notifications extends Component {
       activeSections: [],
       checked: false,
       checkedBox: [],
-      rootNotification: []
+      rootNotification: [],
+      isSelected: false
     };
   }
 
@@ -95,11 +96,35 @@ class Notifications extends Component {
       </>
     )
   }
+  
 
   pushInArray = (id, o_id) => {
-    this.setState(prevState => ({
-      checkedBox: [...prevState.checkedBox, id]
-    }))
+    if (this.state.checkedBox.indexOf(id)<0){
+      this.setState(prevState => ({
+        checkedBox: [...prevState.checkedBox, id]
+      }))
+    }
+    else {
+      let index = this.state.checkedBox.indexOf(id);
+      this.state.checkedBox.splice(index, 1)
+      this.setState(prevState => ({
+        checkedBox: this.state.checkedBox
+      }))
+    }
+  }
+  checkAll = () => {
+    if (this.state.checkedBox.length != this.state.rootNotification.length){
+      this.state.rootNotification.map((item, index) => {
+        this.setState({checkedBox:[]}, () => {
+          this.setState(prevState => ({
+            checkedBox: [...prevState.checkedBox, item.n_id]
+          }))
+        })
+      })
+    }
+    else {
+      this.setState({checkedBox: []})
+    }
   }
 
   renderContent = section => {
@@ -150,9 +175,13 @@ class Notifications extends Component {
       return Alert.alert("Something went wrong please try again later")
     }
   }
-
+  
+  handleCheckBox = () => {
+    // this.setState({ isSelected: !this.state.isSelected })
+  }
 
   render() {
+    console.log(this.state.checkedBox)
     return (
       <DrawerWrapper {...this.props}>
         <View style={{ marginBottom: 20 }}>
@@ -171,7 +200,7 @@ class Notifications extends Component {
                   <CheckBox
                     value={this.state.checked}
                     title="Check All"
-                    onValueChange={() => this.setState({ checked: !this.state.checked })}
+                    onValueChange={() => {this.setState({ checked: !this.state.checked }); this.checkAll()}}
                   />
                   <Text style={{ fontSize: 15, marginTop: 5 }}>Check All</Text>
                 </View>
@@ -179,7 +208,7 @@ class Notifications extends Component {
             </View>
             {this.state.rootNotification.length > 0
               &&
-              this.state.rootNotification.map((item) => {
+              this.state.rootNotification.map((item, index) => {
                 return (
                   <View style={{ borderBottomColor: '#7F7F7F', borderBottomWidth: 1 }}>
                     <View style={styles.boxStyle}>
@@ -192,6 +221,7 @@ class Notifications extends Component {
                     <CheckBox
                       style={{ marginLeft: 15 }}
                       onValueChange={() => this.pushInArray(item.n_id)}
+                      value={this.state.checkedBox.includes(item.n_id)}
                     />
                   </View>
                 )

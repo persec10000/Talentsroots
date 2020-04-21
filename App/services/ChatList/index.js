@@ -86,7 +86,7 @@ export const eventRead = (con_id, token) => {
       return responseJson;
     })
     .catch((error) => {
-      console.error("in send message",error);
+      console.error("in send messageeeeeeeeeeeeeee",error);
     });
 }
 export const eventTyping = (con_id, token) => {
@@ -131,6 +131,7 @@ export const getChats = (con_id, token) => {
       return responseJson;
     })
     .catch((error) => {
+      console.log("ffffffffffffffffffffff", error)
       console.error(error);
     });
 }

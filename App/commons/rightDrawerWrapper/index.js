@@ -15,12 +15,12 @@ import RightDrawer from '../../Screens/rightDrawer';
 import LeftDrawer from '../../Screens/leftDrawer';
 import ProfileDataRequire from '../../components/ProfileDataRequire';
 const TYPES = ['front', 'back', 'back', 'slide'];
-const PARALLAX = [false, false, true, false];
+const PARALLAX = [false, false, true, true];
 
 class DrawerWrapper extends Component {
   state = { 
     fromLeft: false, 
-    type: 2,
+    type: 3,
     isProfileRequire:false,  
   };
 
@@ -91,7 +91,8 @@ class DrawerWrapper extends Component {
                     backgroundColor: '#fff',
                   },
                 })
-          }>
+          }
+          >
         <Header {...this.props} drawer = {() => this.drawer.openDrawer()} />
           {/* {
             this.state.isProfileRequire ? 

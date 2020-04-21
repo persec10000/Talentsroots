@@ -10,6 +10,7 @@ export default StyleSheet.create({
         display: 'flex',
         justifyContent: 'flex-start',
         flexDirection: 'row',
+        flexWrap: 'wrap',
         flex : 1
     },
     phpButton: {

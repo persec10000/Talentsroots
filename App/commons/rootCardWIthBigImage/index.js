@@ -30,6 +30,7 @@ RootCardWIthBigImage = props => {
   return (
     <TouchableOpacity 
     onPress={() => props.navigation.navigate('RootPage', {
+      isreview:true,
       token: props.token,
       root_id: item.r_id,
       user_id: item.r_user_id

@@ -74,7 +74,7 @@ export const category_service = (payload) => {
 };
 
 export const start_vacation = (token, reason, date) => {
-  console.log("===============", token, reason, date.getTime())
+  console.log("===============", token, reason, date)
   return fetch(config.vacation, {
     method: 'POST',
     headers: {
@@ -84,7 +84,8 @@ export const start_vacation = (token, reason, date) => {
     },
     body:  JSON.stringify({
       'reason': reason,
-      'end_date': date.getTime()
+      // 'end_date': date.getTime()
+      'end_date': date
     })
   })
   .then( response => {
