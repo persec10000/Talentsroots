@@ -30,9 +30,9 @@ export default StyleSheet.create({
     height: 150,
     textAlignVertical: 'center',
     textAlign: 'center',
-    paddingLeft: 10,
+    // paddingLeft: 10,
     borderWidth: 1,
-    marginVertical: 10,
+    // marginVertical: 10,
     color: '#10A2EF',
     borderRadius: 4,
     borderWidth: 1,
@@ -41,9 +41,13 @@ export default StyleSheet.create({
     alignItems:'center',
     // justifyContent:'center'
   },
+  imageView: {
+    height: 150,
+    // marginVertical: 10,
+    width:'100%'
+  },
   image:{
     height: 150,
-    marginVertical: 10,
     width:'100%'
   },
   button_wrapper: {

@@ -17,13 +17,10 @@ import { NavigationEvents } from "react-navigation";
 import '../../services/ChatList'
 import { getPreviousChats, loadMorePreviousChats } from '../../services/ChatList';
 import {profile_service} from '../../services/profile';
-// import { TouchableOpacity } from 'react-native-gesture-handler';
-import SocketIOClient from 'socket.io-client/dist/socket.io';
 import DrawerWrapper from '../../commons/rightDrawerWrapper';
 import Icon from "react-native-vector-icons/FontAwesome";
 import { scale, heightPercentageToDP } from '../../commons/responsive_design';
 
-// const URL = 'https://socket.lembits.in';
 
 let offsetNum = 30;
 const ChatList = (props) => {
@@ -43,7 +40,7 @@ const ChatList = (props) => {
     }
 
     useEffect(() => {
-        const socket  = props.screenProps;
+        const socket  = global.socket;
 
         socket.on('user_message', (data) => {
 

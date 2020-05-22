@@ -12,9 +12,11 @@ export function* Login(payload) {
     // console.log("Device listing",username,password,device_id)
     console.log('login response', response)
     if (response.status == 1) {
+      global.socketURL = response.data.socket_url;
       AsyncStorage.setItem('username',username)
       AsyncStorage.setItem('password',password)
       AsyncStorage.setItem('device_id',device_id)
+      AsyncStorage.setItem('socket_url', JSON.stringify(response.data.socket_url))
       let userToken = response.data.token;
       let name = response.data.name
       let email = response.data.email
@@ -44,12 +46,14 @@ export function* FbLogin(payload) {
       // AsyncStorage.setItem('username',username)
       // AsyncStorage.setItem('password',password)
       AsyncStorage.setItem('device_id',device_id)
+      AsyncStorage.setItem('socket_url', response.data.socket_url)
       let userToken = response.data.token;
       let name = response.data.name
       let email = response.data.email
       let profile = response.data.profile
       let user_id = response.data.id
       let user_type = response.data.type
+      let tz = payload.payload.tz
       yield put({type: types.LOGIN_SUCCESS, userToken,name,email,profile,user_id, user_type});
       console.log('Successfully loggedin')
     } else {
@@ -75,6 +79,7 @@ export function* GoogleLogin(payload) {
       // AsyncStorage.setItem('username',username)
       // AsyncStorage.setItem('password',password)
       AsyncStorage.setItem('device_id',device_id)
+      AsyncStorage.setItem('socket_url', response.data.socket_url)
       let userToken = response.data.token;
       let name = response.data.name
       let email = response.data.email

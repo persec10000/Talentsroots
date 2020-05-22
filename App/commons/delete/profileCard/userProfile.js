@@ -3,7 +3,6 @@ import {View, Text, StyleSheet, Image} from 'react-native';
 import {AirbnbRating} from 'react-native-ratings';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 const UserProfileCard = props => {
-  console.log('profile data', props.profileData);
   return (
     <View>
       <View style={styles.profileCardEnd}>

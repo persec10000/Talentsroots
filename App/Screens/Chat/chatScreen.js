@@ -14,13 +14,13 @@ import {
     Button,
     Picker,
     Keyboard,
+    Linking,
     TouchableHighlight,
     ActivityIndicator
 } from 'react-native';
 import Modal from "react-native-modal";
 import { connect } from 'react-redux';
 window.navigator.userAgent = 'react-native';
-import SocketIOClient from 'socket.io-client/dist/socket.io';
 import FilePickerManager from 'react-native-file-picker';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import { sendMessage, eventRead, eventTyping, loadMoreChat, getChats, rejectCustomOffer, uploadFile, blockUserService, favUserService, getRoots, sendCustomOfferService, withdrawOffer } from '../../services/ChatList';
@@ -33,11 +33,12 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import RNFetchBlob from 'rn-fetch-blob'
 import { widthPercentageToDP, heightPercentageToDP, moderateScale } from '../../commons/responsive_design';
 import Video from 'react-native-video';
+import { getFinalPriceService } from '../../services/payments/payments'
 import Dialog, { DialogFooter, DialogButton, DialogContent } from 'react-native-popup-dialog';
 import { RNVoiceRecorder } from 'react-native-voice-recorder'
 import Player from '../../components/player'
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
-// const URL = 'https://socket.tribital.ml';
+import ParsedText from 'react-native-parsed-text';
 
 import {
     Menu,
@@ -193,24 +194,13 @@ class ChatScreen extends React.Component {
             last_ping_time: ''
         }
         this.keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', this.scrollToBottom.bind(this));
-
-        // console.log("SOCKET URL ++++ >>>>>>", 'https://socket.tribital.ml?user_id=' + this.props.id, {
-        //     transport: ['websocket'],
-        //     jsonp: false
-        // })
-        // this.socket = SocketIOClient('https://socket.tribital.ml?user_id=' + this.props.id);
-        // this.socket.on('connect', () => {
-        //     console.log('connected at https://socket.tribital.ml?user_id=' + this.props.id)
-        // });
-
-        // this.socket.on('connect_error', (err) => {
-        //     // console.log("SOCKET CONNECTION ERR ----", err)
-        // })
     }
 
     componentDidMount = async () => {
+        console.log("nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn", global.socket)
         const messagesArray = this.state.messages;
-        this.props.screenProps.on('user_message', (data) => {
+        let socket = global.socket;
+        socket.on('user_message', (data) => {
             const userMessage = JSON.parse(data)
             console.log('data=======================',userMessage)
             if (userMessage.type == "chat") {
@@ -240,7 +230,7 @@ class ChatScreen extends React.Component {
                     this.state.messages.map(item => {
                         return item.isRead = 1
                     })
-                    // this.setState({ isRead: true })
+                    this.setState({ isRead: true })
                 }
             } else if (userMessage.type == "user_login") {
                 if (userMessage.data.user_id == this.props.navigation.state.params.user.id) {
@@ -296,16 +286,40 @@ class ChatScreen extends React.Component {
         }, 6000)
 
     }
+    getAllChat = async() => {
+        let messagesArray = [];
+        let chats = await getChats(this.state.conversation_id, this.props.token);
+        if (chats.status==1){
+            // eventRead(this.state.conversation_id, this.props.token)
+            for (let i = 0; i < chats.data.length; i++) {
+                messagesArray.push({
+                    message: chats.data[i].message,
+                    from_id: chats.data[i].from_user_id,
+                    name: chats.data[i].name,
+                    data: chats.data[i] && chats.data[i].data && chats.data[i].data.root_id ? chats.data[i].data : '',
+                    file: chats.data[i] && chats.data[i].data && chats.data[i].data.file_name ? chats.data[i].data : '',
+                    video: chats.data[i] && chats.data[i].data && chats.data[i].data.type == "video/mp4" ? chats.data[i].data : '',
+                    created_at: chats.data[i].created_at,
+                    profile: chats.data[i].profile,
+                    isRead: chats.data[i].read_by_status
+                })
+            }
+            this.setState({
+                messages: messagesArray
+            })
+        }
+    }
+    
     getChats = async () => {
         let response = await getPreviousChats(this.props.token, '');
         console.log("response.data",response.data)
         response.data.map((res,index) => {
             if (res.conversation_id == this.state.conversation_id){
-                console.log('resssssssssssssss======',res)
                 this.setState({last_ping_time: res.last_ping_time})
             }
         })
     }
+    
     componentWillUnmount () {
         this.keyboardDidShowListener.remove();
     }
@@ -329,7 +343,13 @@ class ChatScreen extends React.Component {
             }
         }
     }
-
+    getFinalPrice = async(finalPrice) => {
+        const getPrice = await getFinalPriceService(this.props.token, finalPrice);
+        let realPrice = getPrice.data;
+        this.setState({realPrice: realPrice})
+        console.log("getPrice================",getPrice.data);
+        // return realPrice;
+    } 
     onSend = async (myMessage) => {
         const violation = this.checkViolation(myMessage);
         if (violation) {
@@ -363,9 +383,12 @@ class ChatScreen extends React.Component {
             }
         }
     }
-  
+    handleUrlPress = (url, matchIndex /*: number*/) => {
+        Linking.openURL(url);
+    }
     showMessage = () => {
         return this.state.messages.map((item, index) => {
+            console.log("hhhhhhhhhhhhhhh",item)
             if (item) {
                 if (!item.file && !item.data && !item.video) { //simple message
                     return (
@@ -376,11 +399,18 @@ class ChatScreen extends React.Component {
                                 <View style={{ flexDirection: 'row' }}>
                                     <View style={{ flexDirection: 'column' }}>
                                         <View style={{ flexDirection: 'row', alignSelf: 'flex-end' }}>
-                                            <Text style={{ color: '#7F7F7F', fontWeight: 'bold' }}>Me </Text>
+                                            <Text style={{ color: '#7F7F7F', fontWeight: 'bold' }}>Me  </Text>
                                             <Text style={{ color: '#7F7F7F' }}>{item.created_at}</Text>
                                         </View>
                                         <View style={{ flexDirection: 'row', flex: 1, alignSelf: 'flex-end', maxWidth: 200 }}>
-                                            <Text style={item.from_id === this.props.id ? styles.textMessageMe : styles.textMessageUser}>{item.message}</Text>
+                                            <ParsedText
+                                                style={item.from_id === this.props.id ? styles.textMessageMe : styles.textMessageUser}
+                                                parse={[{type: 'url',                       style: styles.url, onPress: this.handleUrlPress}]}
+                                                childrenProps={{allowFontScaling: false}}
+                                            >
+                                                {item.message}
+                                            </ParsedText>
+                                            {/* <Text style={item.from_id === this.props.id ? styles.textMessageMe : styles.textMessageUser}>{item.message}</Text> */}
                                         </View>
                                         {item.isRead == 1 ? <Icon style={{ alignSelf: 'flex-end' }} name="check" color='#10A2EF' size={15} /> : null}
                                     </View>
@@ -390,10 +420,16 @@ class ChatScreen extends React.Component {
                                 <View style={{ flexDirection: 'row' }}>
                                     <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: this.props.navigation.state.params.user.profile }} />
                                     <View style={{ flexDirection: 'column' }}>
-                                        <View style={{ flexDirection: 'row' }}><Text style={{ color: '#7F7F7F', fontWeight: 'bold' }}>{item.name}</Text><Text style={{ color: '#7F7F7F' }}>{item.created_at}</Text></View>
+                                        <View style={{ flexDirection: 'row' }}><Text style={{ color: '#7F7F7F', fontWeight: 'bold' }}>{item.name}  </Text><Text style={{ color: '#7F7F7F' }}>{item.created_at}</Text></View>
                                         <View style={{ flexDirection: 'row', alignSelf: 'flex-start', maxWidth: 200 }}>
-                                            <Text style={item.from_id === this.props.id ? styles.textMessageMe : styles.textMessageUser}>{item.message}</Text>
-
+                                            <ParsedText
+                                                style={item.from_id === this.props.id ? styles.textMessageMe : styles.textMessageUser}
+                                                parse={[{type: 'url',                       style: styles.url, onPress: this.handleUrlPress}]}
+                                                childrenProps={{allowFontScaling: false}}
+                                            >
+                                                {item.message}
+                                            </ParsedText>
+                                            {/* <Text style={item.from_id === this.props.id ? styles.textMessageMe : styles.textMessageUser}>{item.message}</Text> */}
                                         </View>
                                     </View>
                                 </View>
@@ -412,7 +448,7 @@ class ChatScreen extends React.Component {
                                         <View style={{ flexDirection: 'row' }}>
                                             <View style={{ flexDirection: 'column' }}>
                                                 <View style={{ flexDirection: 'row', alignSelf: 'flex-end' }}>
-                                                    <Text style={{ color: '#7F7F7F', fontWeight: 'bold' }}>Me</Text>
+                                                    <Text style={{ color: '#7F7F7F', fontWeight: 'bold' }}>Me  </Text>
                                                     <Text style={{ color: '#7F7F7F' }}>{item.created_at}</Text>
                                                 </View>
                                                 <TouchableOpacity onPress={() => { this.setState({ imagePreview: true, imagePath: 'https://cdn.talentsroot.com/upload/chat/' + item.file.file_name }) }}>
@@ -442,7 +478,7 @@ class ChatScreen extends React.Component {
                                             <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: this.props.navigation.state.params.user.profile }} />
                                             <View style={{ flexDirection: 'column' }}>
                                                 <View style={{ flexDirection: 'row' }}>
-                                                    <Text style={{ color: '#7F7F7F', fontWeight: 'bold' }}>{item.name}</Text><Text style={{ color: '#7F7F7F' }}>{item.created_at}</Text>
+                                                    <Text style={{ color: '#7F7F7F', fontWeight: 'bold' }}>{item.name}  </Text><Text style={{ color: '#7F7F7F' }}>{item.created_at}</Text>
                                                 </View>
                                                 <TouchableOpacity onPress={() => { this.setState({ imagePreview: true, imagePath: 'https://cdn.talentsroot.com/upload/chat/' + item.file.file_name }) }}>
                                                     <Image source={{ uri: 'https://cdn.talentsroot.com/upload/chat/' + item.file.file_name }}
@@ -473,7 +509,7 @@ class ChatScreen extends React.Component {
                                         <View style={{ flexDirection: 'row'}}>
                                             <View style={{flexDirection:'column'}}>
                                                 <View style={{ flexDirection: 'row', alignSelf: 'flex-end' }}>
-                                                    <Text style={{ color: '#7F7F7F', fontWeight: 'bold' }}>Me</Text>
+                                                    <Text style={{ color: '#7F7F7F', fontWeight: 'bold' }}>Me  </Text>
                                                     <Text style={{ color: '#7F7F7F' }}>{item.created_at}</Text>
                                                 </View>
                                                 <View style={{width:widthPercentageToDP(70), height: heightPercentageToDP(8)}}>
@@ -492,7 +528,7 @@ class ChatScreen extends React.Component {
                                             <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: this.props.navigation.state.params.user.profile }} />
                                             <View style={{ flexDirection: 'column' }}>
                                                 <View style={{ flexDirection: 'row' }}>
-                                                    <Text style={{ color: '#7F7F7F', fontWeight: 'bold' }}>{item.name}</Text><Text style={{ color: '#7F7F7F' }}>{item.created_at}</Text>
+                                                    <Text style={{ color: '#7F7F7F', fontWeight: 'bold' }}>{item.name}  </Text><Text style={{ color: '#7F7F7F' }}>{item.created_at}</Text>
                                                 </View>
                                                 <View style={{width:widthPercentageToDP(70), height: heightPercentageToDP(8)}}>
                                                     <Player
@@ -518,7 +554,7 @@ class ChatScreen extends React.Component {
                                         <View style={{ flexDirection: 'row' }}>
                                             <View style={{ flexDirection: 'column' }}>
                                                 <View style={{ flexDirection: 'row', alignSelf: 'flex-end' }}>
-                                                    <Text style={{ color: '#7F7F7F', fontWeight: 'bold' }}>Me</Text>
+                                                    <Text style={{ color: '#7F7F7F', fontWeight: 'bold' }}>Me  </Text>
                                                     <Text style={{ color: '#7F7F7F' }}>{item.created_at}</Text>
                                                 </View>
                                                 <TouchableOpacity style={item.from_id === this.props.id ? styles.fileMe : styles.fileUser} onPress={() => this.downloadFilePermission(item.file)}>
@@ -542,7 +578,7 @@ class ChatScreen extends React.Component {
                                             <Image style={{ height: 50, width: 50, borderRadius: 50 }} source={{ uri: this.props.navigation.state.params.user.profile }} />
                                             <View style={{ flexDirection: 'column' }}>
                                                 <View style={{ flexDirection: 'row' }}>
-                                                    <Text style={{ color: '#7F7F7F', fontWeight: 'bold' }}>{item.name}</Text><Text style={{ color: '#7F7F7F' }}>{item.created_at}</Text>
+                                                    <Text style={{ color: '#7F7F7F', fontWeight: 'bold' }}>{item.name}  </Text><Text style={{ color: '#7F7F7F' }}>{item.created_at}</Text>
                                                 </View>
                                                 <TouchableOpacity style={item.from_id === this.props.id ? styles.fileMe : styles.fileUser} onPress={() => this.downloadFilePermission(item.file)}>
                                                     <Icon name="download" color='white' size={25} />
@@ -556,6 +592,10 @@ class ChatScreen extends React.Component {
                         )
                     }
                 } else if (item.data) { //custom offer
+                    if (item.message == "Custom Offer"){
+                        if (item.data.status === 0) {
+                        }
+                    }
                     return (
                         <View key={index} style={{ flexDirection: 'row' },
                             item.from_id === this.props.id ? styles.messageMe : styles.messageUser
@@ -577,9 +617,12 @@ class ChatScreen extends React.Component {
                                             <Text style={{ fontWeight: 'bold' }}>Amount: </Text>
                                             <Text>{'$' + item.data.amount}</Text>
                                         </View>
-                                        {!this.state.offerWithdrawn && !item.data.status_text && <Button style={{ height: 25, width: 50, borderRadius: 10, color: 'lightred', marginTop: 15 }} title="Withdraw" onPress={() => this.withdrawCustomOffer()} />}
-                                        {item.data.status_text ? <Text style={{ color: 'black' }}>{item.data.status_text}</Text> : null}
-                                        {this.state.offerWithdrawn && <Text style={{ color: 'black' }}>Withdrawn</Text>}
+                                        {item.data.status === 0? 
+                                            <Button style={{ height: 25, width: 50, borderRadius: 10, color: 'lightred', marginTop: 15 }} title="Withdraw" onPress={() => this.withdrawCustomOffer(item.data.id)} />
+                                            :
+                                            <Text style={{ color: 'black' }}>{item.data.status_text}</Text>
+                                        }
+                                        
                                     </View>
                                 </View>
                                     {item.isRead == 1 ? <Icon style={{ alignSelf: 'flex-end' }} name="check" color='#10A2EF' size={15} /> : null}</>
@@ -601,25 +644,41 @@ class ChatScreen extends React.Component {
                                             <Text style={{ color: 'white' }}>{'$' + item.data.amount}</Text>
                                         </View>
                                         <View style={{ flexDirection: 'row' }}>
-                                            {item.data.status_text ? null :
-                                                <TouchableOpacity style={{ height: 30, width: 70, backgroundColor: 'green', marginTop: 15, alignItems: 'center', borderRadius: 10 }} onPress={() => this.props.navigation.navigate('PaymentScreen',
+                                            {item.data.status !== 0? 
+                                            <Text style={{ color: 'white', marginTop: 5 }}>{item.data.status_text}</Text> 
+                                            :
+                                                <>
+                                                <TouchableOpacity style={{ height: 30, width: 70, backgroundColor: 'green', marginTop: 15, alignItems: 'center', borderRadius: 10 }} onPress={async() => {
+                                                    await this.getFinalPrice(item.data.amount);
+                                                    this.customOffer(item.data.id);
+                                                    this.props.navigation.navigate('PaymentScreen',
                                                     {
                                                         rootDetails: {
-                                                            final_price: item.data.amount,
-                                                            r_image: item.data.r_root_image,
+                                                            r_image: item.profile,
                                                             r_title: item.data.r_title,
-                                                            username: item.username,
-                                                            r_user_id: item.r_u_id,
-                                                            r_id: item.r_id,
-                                                            days: item.data.delivery
+                                                            username: item.name,
+                                                            final_price: item.data.amount,
+                                                            processing_fees: this.state.realPrice.processingPrice,
+                                                            r_user_id: item.data.seller_id,
+                                                            r_id: item.data.root_id,
+                                                            days: item.data.delivery,
+                                                            delivery_days: item.data.delivery,
+                                                            orderId: this.state.realPrice.orderID,
+                                                            packagePrice: this.state.realPrice.packagePrice,
+                                                            used_balance: this.state.realPrice.usedBalance,
+                                                            total: this.state.realPrice.finalprice,
                                                         }
                                                     }
-                                                )} >
-                                                    <Text style={{ color: 'white', marginTop: 5 }}>{"Accept"}</Text></TouchableOpacity>}
-                                            <TouchableOpacity style={{ height: 30, width: 70, backgroundColor: 'red', marginTop: 15, alignItems: 'center', marginLeft: 10, borderRadius: 10 }} onPress={() => this.rejectCustomOffer()}>
-                                                {!this.state.rejeted && <Text style={{ color: 'white', marginTop: 5 }}>{item.data.status_text ? item.data.status_text : 'Reject'}</Text>}
-                                                {this.state.offerRejected ? <Text style={{ color: 'white', marginTop: 5 }}>{'Rejected'}</Text> : null}
-                                            </TouchableOpacity>
+                                                )}} >
+                                                    <Text style={{ color: 'white', marginTop: 5 }}>{"Accept"}</Text>
+                                                </TouchableOpacity>
+
+                                                <TouchableOpacity style={{ height: 30, width: 70, backgroundColor: 'red', marginTop: 15, alignItems: 'center', marginLeft: 10, borderRadius: 10 }} onPress={() => this.rejectCustomOffer(item.data.id)}>
+                                                    {!this.state.rejeted && <Text style={{ color: 'white', marginTop: 5 }}>{item.data.status_text ? item.data.status_text : 'Reject'}</Text>}
+                                                    {/* {this.state.offerRejected ? <Text style={{ color: 'white', marginTop: 5 }}>Rejected</Text> : null} */}
+                                                </TouchableOpacity>
+                                                </>
+                                            }
                                         </View>
                                     </View>
                                 </View>
@@ -627,7 +686,7 @@ class ChatScreen extends React.Component {
 
                         </View>
                     )
-                } else if (item.video) {
+                } else if (item.video || item.file.extension == 'mp4' || item.file.extension == 'avi') {
                     return (
                         <View key={index} style={
                             item.from_id === this.props.id ? styles.messageMe : styles.messageUser
@@ -643,7 +702,7 @@ class ChatScreen extends React.Component {
                                             </View>
                                             <View style={styles.videoContainer}>
                                                 <Video
-                                                    source={{ uri: 'https://cdn.talentsroot.com/upload/chat/' + item.video.file_name }}
+                                                    source={{ uri: 'https://cdn.talentsroot.com/upload/chat/' + item.file.file_name }}
                                                     ref={(ref) => {
                                                         this._player = ref
                                                     }} 
@@ -656,6 +715,7 @@ class ChatScreen extends React.Component {
                                                     resizeMode={'contain'}
                                                     muted={false}
                                                     style={styles.video}
+                                                    disableFocus={true}
                                                 />
                                             </View>
                                         </View>
@@ -685,7 +745,7 @@ class ChatScreen extends React.Component {
                                             </View>
                                             <View style={styles.videoContainer}>
                                                 <Video
-                                                    source={{ uri: 'https://cdn.talentsroot.com/upload/chat/' + item.video.file_name }}
+                                                    source={{ uri: 'https://cdn.talentsroot.com/upload/chat/' + item.file.file_name }}
                                                     ref={(ref) => {
                                                         this._player = ref
                                                     }}
@@ -697,7 +757,8 @@ class ChatScreen extends React.Component {
                                                     controls={true}
                                                     resizeMode={'contain'}
                                                     muted={true}
-                                                    style={styles.video} />
+                                                    style={styles.video}
+                                                    disableFocus={true} />
                                             </View>
                                         </View>
                                     </View>
@@ -718,20 +779,28 @@ class ChatScreen extends React.Component {
 
         });
     }
-    customOffer = async() => {
-
+    customOffer = async(offerId) => {
+        let response = await rejectCustomOffer(offerId, this.props.token, 2)
+        if (response.status == 1) {
+            this.setState({ offerRejected: true });
+            this.getAllChat();
+        } else {
+            Alert.alert("Something went wrong please try again later")
+        }
     }
-    rejectCustomOffer = async () => {
-        let response = await rejectCustomOffer(this.state.conversation_id, this.props.token, 0)
+    rejectCustomOffer = async (offerId) => {
+        let response = await rejectCustomOffer(offerId, this.props.token, 0)
+        console.log("rejected",response)
         if (response.status == 1) {
             Alert.alert("Offer Rejected")
-            this.setState({ offerRejected: true })
+            this.setState({ offerRejected: true });
+            this.getAllChat();
         } else {
             Alert.alert("Something went wrong please try again later")
         }
     }
 
-    withdrawCustomOffer = async () => {
+    withdrawCustomOffer = async (offerId) => {
 
         return Alert.alert(
             'Confirm',
@@ -742,17 +811,17 @@ class ChatScreen extends React.Component {
                     onPress: () => console.log('Cancel Pressed'),
                     style: 'cancel',
                 },
-                { text: 'OK', onPress: () => this.withdrawConfirm() },
+                { text: 'OK', onPress: () => this.withdrawConfirm(offerId) },
             ],
             { cancelable: false },
         );
     }
 
-    withdrawConfirm = async () => {
-        let response = await withdrawOffer(this.state.conversation_id, this.props.token, 1)
+    withdrawConfirm = async (offerId) => {
+        let response = await withdrawOffer(offerId, this.props.token, 1)
         if (response.status == 1) {
             Alert.alert("Withdrawn")
-            this.setState({ offerWithdrawn: true })
+            this.getAllChat();
         } else {
             Alert.alert("Something went wrong please try again later")
         }
@@ -805,6 +874,7 @@ class ChatScreen extends React.Component {
     // }
     voiceSend = async() => {
         let isvoice = true;
+        this.setState({ isvoiceSend:false, uploaded: true })
         let res = await uploadFile(this.state.recordingPath, this.state.conversation_id, 0, this.props.token, isvoice);
         const fileUpload = this.state.messages;
         fileUpload.push({
@@ -820,7 +890,7 @@ class ChatScreen extends React.Component {
             created_at: res.data.created_at
         })
         this.setState({ messages: fileUpload, uploaded: false })
-        this.setState({isvoiceSend:false})
+        this.setState({uploaded:false})
     }
     recordStart = () => {
         this.setState({isvoiceRecord: false} , ()=>{
@@ -922,7 +992,9 @@ class ChatScreen extends React.Component {
 
     uploadDocument = async (response) => {
         this.setState({ uploaded: true })
+        console.log("here")
         let res = await uploadFile(response, this.state.conversation_id, 1, this.props.token)
+        console.log("uploadresutl=========",res)
         const fileUpload = this.state.messages;
         fileUpload.push({
             message: res.data && res.data.message ? res.data.message : '',
@@ -1025,7 +1097,7 @@ class ChatScreen extends React.Component {
             Alert.alert("Please add offer details")
         } else if (!offerPrice) {
             Alert.alert("Please add offer price")
-        } else if (offerPrice <= 5) {
+        } else if (offerPrice < 5) {
             Alert.alert("Price must be more than $5")
         } else {
             let res = await sendCustomOfferService(con_id, token, offer_details, selectedDays, r_id, offerPrice);
@@ -1034,17 +1106,12 @@ class ChatScreen extends React.Component {
             customOfferArray.push({
                 message: res.data.message,
                 from_id: res.data.from_user_id,
-                data: {
-                    r_title: res.data.data.r_title,
-                    description: res.data.data.description,
-                    delivery: res.data.data.delivery,
-                    amount: res.data.data.amount,
-                    status_text: res.data.data.status_text
-                },
+                data: res.data.data,
                 profile: this.state.profilePhoto,
                 name: res.data.name,
                 created_at: res.data.data.created_at
             })
+            console.log("customOfferArray========",customOfferArray)
             this.setState({
                 messages: customOfferArray
             })
@@ -1145,7 +1212,7 @@ class ChatScreen extends React.Component {
                     <View style={{ flexDirection: 'row', justifyContent: 'center', }}>
                         <TouchableOpacity
                             style={{ alignSelf: 'center' }}
-                            onPress={() => { this.props.navigation.goBack(null) }}>
+                            onPress={() => { this.props.navigation.navigate('ChatList') }}>
                             <Icon name="chevron-left" color='#10A2EF' size={27} style={{ paddingLeft: 5, marginTop: 10 }} />
                         </TouchableOpacity>
                         <View
@@ -1352,7 +1419,7 @@ class ChatScreen extends React.Component {
                 </View>
                 <KeyboardAwareScrollView innerRef={ref => this._scrollView = ref} style={{flex:1}}
                     onContentSizeChange={(contentWidth, contentHeight) => {
-                        // eventRead(this.props.navigation.state.params.user.conversation_id, this.props.token)
+                        eventRead(this.props.navigation.state.params.user.conversation_id, this.props.token)
                         this.state.scroll ? null : this._scrollView.scrollToEnd({ animated: true });
                     }}
                 >
@@ -1774,6 +1841,10 @@ const styles = StyleSheet.create({
     popupModal : {
         position:'absolute',
         top: 10,
-    }
+    },
+    url: {
+        color: 'blue',
+        textDecorationLine: 'underline',
+    },
 });
 export default connect(mapStateToProps)(ChatScreen);

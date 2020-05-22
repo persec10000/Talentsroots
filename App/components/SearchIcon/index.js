@@ -20,6 +20,7 @@ const SearchBar = (props) => {
     const [searchTerm,SetSearchTerm] = useState('');
     const toggle = () => setIsVisible(!isVisible);
     const handleSearch = () =>{
+        props.navigation.navigate('Home');
         if(!searchTerm) return Alert.alert('Please fill out this.');
         setIsVisible(false)
         props.navigation.navigate('AdvanceSearch', { 'searchTerm': searchTerm });

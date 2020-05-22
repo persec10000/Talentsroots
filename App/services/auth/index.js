@@ -34,7 +34,8 @@ export const FbAuthLogin = async request => {
       // 'api-key': 'B3vWg8qq4k2!9qePMh*U&Cu&tbPJ$Fywnk^5LYFUprx9BAetDk5',
       'api-key': 'AIzaSyDxo00YV2vegDxQjGmbOKWukqDKtXAMOwY',
       'Content-Type': 'application/json',
-      'auth-token': 'L6g1tajZuQvD6BK93n2mL4pRl84JCsbf'
+      'auth-token': 'L6g1tajZuQvD6BK93n2mL4pRl84JCsbf',
+      'tz': request.tz
     },
     body: JSON.stringify({
       facebook_id: request.facebook_id,

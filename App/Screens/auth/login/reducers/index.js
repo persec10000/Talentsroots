@@ -26,7 +26,6 @@ export default function LoginUser(state = initialState, action) {
     case types.LOGIN_FAILURE:
       return { ...state, fetching: false,googlefetching: false,fbfetching:false, loggedin:false,error:true,userToken:null,name:null,email:null,profile:'' };
     case types.LOGOUT_REQUEST:
-      console.log("logouttttt")
       return {...state,loggedin:false,error:false, name:null, email:null, profile:'',userToken:null, user_id: null}
     default:
       return state;

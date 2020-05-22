@@ -7,8 +7,7 @@ RootCardItem = props => {
   const {item , navigation} = props;
   const [online, setOnline] = useState( item.is_online == 1 ? true : false)
   useEffect(() => {
-    console.log("rootcardItem=============",props.item)
-    const socket = props.socket;
+    const socket = global.socket;
     socket.on('user_message', (data) => {
       const userMessage = JSON.parse(data)
       if (userMessage.type == "user_login") {

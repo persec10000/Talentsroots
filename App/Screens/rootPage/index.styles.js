@@ -11,7 +11,8 @@ export default StyleSheet.create({
         justifyContent: 'flex-start',
         flexDirection: 'row',
         flexWrap: 'wrap',
-        flex : 1
+        flex : 1,
+        marginBottom: 10,
     },
     phpButton: {
         marginVertical: 10,
@@ -35,6 +36,7 @@ export default StyleSheet.create({
         right: 0,
         bottom: 0,
         margin: 10,
+        marginTop: 15,
         flex : 1
     },
     card: {

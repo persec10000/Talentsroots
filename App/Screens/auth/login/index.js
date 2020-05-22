@@ -135,7 +135,8 @@ class LoginScreen extends React.Component {
           result.email,
           result.first_name,
           result.last_name,
-          device_id
+          device_id,
+          this.state.tz,
         )
       })
       .catch(error => {
@@ -148,7 +149,7 @@ class LoginScreen extends React.Component {
       const device_id = this.state.device_id
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
-      await GoogleSignin.revokeAccess();
+      // await GoogleSignin.revokeAccess();
       console.log('userInfo==', userInfo)
       // this.setState({ userInfo: userInfo, loggedIn: true });
       let user = userInfo.user;
@@ -201,12 +202,13 @@ class LoginScreen extends React.Component {
       this.setState({ device_id: androidId });
     });
     console.disableYellowBox = true;
-    GoogleSignin.configure({
-      webClientId: '1078990166609-8e3s0c2p5ip1si0gu6a463013kgqg2os.apps.googleusercontent.com', 
-      offlineAccess: true, 
-      hostedDomain: '', 
-      forceConsentPrompt: true, 
-    });
+    GoogleSignin.configure();
+    // GoogleSignin.configure({
+    //   webClientId: '1078990166609-8e3s0c2p5ip1si0gu6a463013kgqg2os.apps.googleusercontent.com', 
+    //   offlineAccess: true, 
+    //   hostedDomain: '', 
+    //   forceConsentPrompt: true, 
+    // });
     // let id = DeviceInfo.getUniqueID();
     // const socket = this.props.screenProps;
     // socket.on('connect', (value) => { 

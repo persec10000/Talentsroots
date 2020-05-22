@@ -57,6 +57,24 @@ export const paymentClearance = async (token) => {
     });
 }
 
+export const applyCoupon = async (token, data) => {
+  return await fetch(config.apply_coupon, {
+    method: 'POST',
+    headers: {
+      'api-key': 'B3vWg8qq4k2!9qePMh*U&Cu&tbPJ$Fywnk^5LYFUprx9BAetDk5',
+      "Content-Type": "application/json",
+      "auth-token": token
+    },
+    body: JSON.stringify(data)
+  })
+    .then(response => {
+      return response.json();
+    })
+    .then(json => {
+      console.log("coupon", json)
+      return json
+    })
+}
 // this.props.token,
 //       passedRootDetails.r_user_id,
 //       passedRootDetails.delivery_days,

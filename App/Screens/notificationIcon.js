@@ -7,7 +7,6 @@ import {
     ScrollView,
     Image,
 } from 'react-native';
-import SocketIOClient from 'socket.io-client/dist/socket.io';
 import { connect } from 'react-redux';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 
@@ -22,9 +21,7 @@ class ChatIcon extends React.Component {
 
     componentDidMount = () => {
         const socket = global.socket;
-        // socket = SocketIOClient('https://socket.talentsroot.com?user_id=' + this.props.id);
         socket.on('connect', () => {
-            // console.log('connected at https://socket.talentsroot.com?user_id=' + this.props.id)
         });
 
         socket.on('connect_error', (err) => { console.log("SOCKET CONNECTION ERR ----", err) })

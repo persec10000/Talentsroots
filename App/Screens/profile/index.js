@@ -19,7 +19,7 @@ import ReviewCard from './components/ReviewCard';
 import DrawerWrapper from '../../commons/rightDrawerWrapper';
 import {my_reviews,awarded_reviews} from '../../services/myReviews'
 import {
-  other_roots
+  other_roots, user_roots
 } from '../../services/otherRoots'
 import { 
   user_reviews 
@@ -62,7 +62,7 @@ class Profile extends Component {
     if(response.status === 1){
       this.setState({ myReviews:response.data})
     }
-    const roots_response = await other_roots(this.props.token,this.state.userId)
+    const roots_response = await user_roots(this.props.token,this.state.userId)
     if(roots_response.status === 1){
       this.setState({ myRoots :roots_response.data})
     }
@@ -76,21 +76,29 @@ class Profile extends Component {
     }
   };
 
-
-  handleContact = async (username) => {
-    console.log('usename',username)
-    const response = await get_conversation(this.props.token,username);
-    console.log('resposne contact',response)
+  getUserProfile = async (token, userId) => {
+    const requestData = {
+      token,
+      user_id: userId
+    }
+    const response = await profile_service(requestData);
     if (response.status === 1) {
-      this.props.navigation.navigate('ChatScreen', { 'user': response.data.opponent })
-    }else{
-      Alert.alert('Error while contact.')
+        return response.data
     }
   }
 
+  handleContact = async (username) => {
+    const response = await get_conversation(this.props.token, username);
+    this.getUserProfile(this.props.token, response.data.opponent.id).then(userProfile =>{
+      if (response.status === 1) {
+        this.props.navigation.navigate('ChatScreen', { 'user': response.data.opponent, 'user_data': userProfile })
+      } else {
+        Alert.alert('Error while contact.')
+      }
+    })
+  }
+
   render(){
-    console.log('this.props.user_id',this.props.user_id)
-    console.log('this.state.userId',this.state.userId)
   return (
     <DrawerWrapper {...this.props}>
       <ScrollView 
@@ -103,7 +111,7 @@ class Profile extends Component {
           navigation={this.props.navigation}
           data={this.state.profileData}
           handleContact={this.handleContact}
-          socket={this.props.screenProps}
+          socket={global.socket}
         />
           <View style={{ height: 25 }} />
         </>
@@ -118,25 +126,33 @@ class Profile extends Component {
           navigation={this.props.navigation}
           myRoots={this.state.myRoots}
           data={this.state.profileData}
+          userId={this.state.userId}
+          position={"profile"}
+          token={this.props.token}
         />
         <View style={{ height: 10 }} />
         </>
         :
          null 
-      } 
-      {/* { this.state.myReviews.length > 0 && this.state.userReviews && this.state.userReviews.reviews.length > 0 && this.state.profileData?
+      }
+      <View>
+
+      </View>
+      { this.state.myReviews.length > 0 && this.state.userReviews && this.state.userReviews.reviews.length > 0 && this.state.profileData?
           <>
           <ReviewCard 
             navigation={this.props.navigation}
             myReviews={this.state.myReviews}
             ratings={this.state.userReviews}
-            data={this.state.profileData}
+            profile={this.state.profileData}
+            reviewRating={this.state.profileData.rating}
+            reviewCount={this.state.profileData.rating_count}
           />
           <View style={{ height: 150 }} />
           </>
         :
         null
-      } */}
+      }
       </ScrollView>
     </DrawerWrapper>
   );

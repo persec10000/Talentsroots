@@ -13,10 +13,13 @@ import RootCardItem from '../rootCardItem';
 // import RootCard from '../../commons/rootCard';
 import { widthPercentageToDP } from '../responsive_design';
 import { ScrollView } from 'react-native-gesture-handler';
-
+import {
+  other_roots
+} from '../../services/otherRoots'
+let offsetNum = 8;
 const RootsCard = props => {
-    const { data , myRoots } = props;
-
+    const { data , myRoots, rootId, userId, token } = props;
+    const [rootData, setRootData] = useState(props.myRoots);
     //scroll
     const refScroll = createRef();
     const [scrollCount, setScrollCount] = useState(0);
@@ -29,13 +32,28 @@ const RootsCard = props => {
         }
     }, [scrollCount])
 
+    const loadMore = async() => {
+        if (offsetNum == false){
+            return;
+        }
+        else {
+            const other_roots_response = await other_roots(token, rootId, userId, offsetNum);
+            if (other_roots_response.status === 1) {
+                offsetNum = other_roots_response.nextoffset; 
+                setRootData([...rootData,...other_roots_response.data])
+            // setReview(users_review_response.data)
+            }
+        }
+        
+    }
     return (
         <>
         {/*Other Roots Section*/}
         {
-            myRoots.length > 0 ? 
+            rootData.length > 0 ? 
             <>
             <View>
+                {props.position == 'rootPage'?
                 <View style={styles.otherRootsTitleStyle}>
                     <Text style={styles.description}>
                      Other roots by 
@@ -44,19 +62,33 @@ const RootsCard = props => {
                       {data.name} 
                     </Text>
                 </View>
+                :
+                <View style={styles.otherRootsTitleStyle}>
+                    <Text style={styles.description}>
+                     Roots 
+                    </Text>
+                </View>
+                }
                 {/*Other roots Section*/}
                 {
-                  myRoots && myRoots.length > 0 ?
+                  rootData && rootData.length > 0 ?
                         <View style={{ paddingVertical: 10 }}>
                             <ScrollView
                              horizontal={true}
                              ref={refScroll}
                             >
                             {
-                                myRoots.map((item,index) => {
-                                    return <RootCardItem key={index} item={item} navigation={props.navigation} socket={props.socket}/>
+                                rootData.map((item,index) => {
+                                    return <RootCardItem key={index} item={item} navigation={props.navigation} socket={global.socket}/>
                                 })
                             }
+                            <View style={{borderWidth: 1,borderRadius: 10,borderColor: '#EDF1F4',justifyContent: 'center', alignItems: 'center', paddingVertical: 15}}>
+                                <TouchableOpacity onPress={() => loadMore()} style={styles.loadMoreBT}>
+                                    <Text style={styles.loadMoreText}>
+                                    LOAD MORE
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
                             </ScrollView>
                             {/* <FlatList
                                 ref={refScroll}
@@ -66,7 +98,7 @@ const RootsCard = props => {
                                 keyExtractor={item => item.id}
                             /> */}
                             {
-                                myRoots.length > 1 ? 
+                                rootData.length > 1 ? 
                                 <Icon 
                                 style={styles.rightArrow}
                                 name="chevron-circle-right" 

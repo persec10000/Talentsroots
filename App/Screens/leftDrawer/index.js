@@ -11,40 +11,46 @@ import moment from 'moment';
 
 const LeftDrawer = (props) => {
   
-  const [isOnVacation, setIsOnVacation] = useState(false)
+  const [isOnVacation, setIsOnVacation] = useState(false);
   const [vacation, setVacation] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [reason, setReason] = useState('awayReason')
+  const [reason, setReason] = useState('awayReason');
   const [date, setDate] = useState(new Date());
   const [mode, setMode] = useState('date');
   const [show, setShow] = useState(false);
   const [balance, setBalance] = useState('')
-
+  const [isEnable, setIsEnable] = useState(true);
+  console.log("userProfile===============",props.profileData)
   const logout = async () => {
     deviceToken = await AsyncStorage.getItem('device_id');
     let response = await log_out(props.login.userToken, deviceToken)
-    console.log("response======>",response)
     if (response.status == 1){ 
       await AsyncStorage.removeItem('username');
       await AsyncStorage.removeItem('password');
       await AsyncStorage.removeItem('device_id');
-      props.screenProps.disconnect(true);
+      await AsyncStorage.removeItem('socket_url');
+      global.socket.disconnect(true);
       await props.dispatch({ type: 'LOGOUT_REQUEST' });
       await props.navigation.navigate('Auth');  
     } 
   };
 
   const startVacation = async (reason, date) => {
-    let dateTime = date.getTime()/1000;
+    let dateTime;
     // let unixTime = moment.unix(date)
     // console.log(")))))))))))", date, unixTime)
     if (isOnVacation){
-      response = await start_vacation(props.login.userToken, '', '')
+      response = await start_vacation(props.login.userToken, '', '');
+      setIsEnable(true);
     }
     else {
+      dateTime = date.getTime()/1000;
       response = await start_vacation(props.login.userToken, reason, dateTime)
+      if (response.status == 1){
+        setIsEnable(false);
+      }
     }
-    let response = await start_vacation(props.login.userToken, reason, dateTime)
+    // let response = await start_vacation(props.login.userToken, reason, dateTime)
     console.log(response);
     if(response.status == 1){
       console.log("ddddddddddd",!setIsOnVacation);
@@ -99,7 +105,26 @@ const LeftDrawer = (props) => {
     getUserBalanceDetails()     
   }, [])
 
+  useEffect(() => {
+    if (props.profileData != null){
+      if (props.profileData.vacation == 0){
+
+      }
+      else{
+        setIsOnVacation(true);
+        setIsEnable(false);
+        setDate(props.profileData.vacation_end);
+        if (props.profileData.vacation == 1){
+          setReason('1')
+        }
+        else{
+          setReason('2')
+        }
+      }
+    }      
+  }, [props.profileData])
   const vacationModal = () => {
+    console.log("reason=====",date)
     return (
       <Modal
         isVisible={isModalVisible}
@@ -113,17 +138,22 @@ const LeftDrawer = (props) => {
           <View style={styles.cardView}>
             <Picker
               selectedValue={reason}
+              enabled={isEnable}
               onValueChange={(itemValue, itemIndex) =>
                 setReason(itemValue)
               }>
               <Picker.Item label="Away Reason" value="" />
-              <Picker.Item label="I am Overbooked" value="0" />
-              <Picker.Item label="I am out of Office" value="1" />
+              <Picker.Item label="I am Overbooked" value="1" />
+              <Picker.Item label="I am out of Office" value="2" />
             </Picker>
           </View>
           <View style={styles.cardViewDate}>
-            <TouchableOpacity onPress={() => showDatepicker()}>
+            <TouchableOpacity onPress={() => isEnable&&showDatepicker()}>
+              {props.profileData.vacation_end == 0?
               <Text style={{marginTop: 8}}>{date.toDateString()}</Text>
+              :
+              <Text style={{marginTop: 8}}>{props.profileData.vacation_end}</Text>
+              }
             </TouchableOpacity>
           </View>
           {show && (

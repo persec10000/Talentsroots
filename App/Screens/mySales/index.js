@@ -21,7 +21,7 @@ import DrawerWrapper from '../../commons/rightDrawerWrapper'
 import { getUserBalance } from '../../services/home/index'
 
 import { my_sales } from '../../services/mySales'
-
+let offsetNum = 5;
 class MySales extends React.Component {
   constructor(props) {
     super(props);
@@ -30,7 +30,8 @@ class MySales extends React.Component {
       mySales: [],
       counts: [],
       balance: '',
-      loader: true
+      loader: true,
+      noMore: false
     }
   }
 
@@ -43,7 +44,14 @@ class MySales extends React.Component {
     this.setState({ balance: balance })
     console.log('Responseeeeee====================', response.data)
     this.setState({ counts: response.data, loader: false })
-    this.setState({ mySales: response.data })
+    this.setState({ mySales: response.data.orders }, () => {
+      if (this.state.mySales.length<5){
+        this.setState({noMore:true})
+      }
+      else{
+        this.setState({noMore:false})
+      }
+    })
   }
 
   fetchsales = async (type) => {
@@ -51,7 +59,33 @@ class MySales extends React.Component {
     console.log("typeeeeeeeeeeeee", type)
     const response = await my_sales(this.props.token, type)
     console.log("=======>>>>>>>>", response)
-    this.setState({ mySales: response.data })
+    this.setState({ mySales: response.data.orders }, () => {
+      if (this.state.mySales.length<5){
+        this.setState({noMore:true})
+      }
+      else{
+        this.setState({noMore:false})
+      }
+    })
+  }
+
+  loadMore = async() => {
+    if (this.state.message == "no data") {
+      console.log(this.state.message)
+      this.setState({noMore:true})
+      return;
+    }
+    else{
+      const response = await my_sales(this.props.token, this.state.type, offsetNum)
+      console.log('llllllllllllllllllll0', response)
+      this.setState({ counts: response.data, loader: false, message:response.message})
+      if (response.status == 1){
+        offsetNum = offsetNum+5;
+        this.setState(prevState => ({
+          mySales: [...prevState.mySales, ...response.data.orders]
+        }))
+      }
+    }
   }
 
   showCard = (item) => {
@@ -273,7 +307,7 @@ class MySales extends React.Component {
               </Picker>
             </View>
 
-            {this.state.mySales.orders && !this.state.mySales.orders.length > 0 &&
+            {this.state.mySales && !this.state.mySales.length > 0 &&
               <>
                 <View style={[styles.cardView, { justifyContent: 'center', alignItems: 'center', alignContent: 'center' }]}>
                   <Text style={[styles.transaction_date, { padding: 30, marginTop: 0 }]}>Nothing yet to show !</Text>
@@ -281,16 +315,27 @@ class MySales extends React.Component {
               </>
             }
 
-            {this.state.mySales && this.state.mySales.orders && this.state.mySales.orders.map((item, index) => {
+            {this.state.mySales && this.state.mySales.map((item, index) => {
               return (
+                <>
                 <TouchableOpacity onPress={() => { this.props.navigation.navigate('OrderDetails', { orderDetails: item, from: 'sales' }) }}>
                   {
                     this.showCard(item)
                   }
                 </TouchableOpacity>
+                </>
               );
             })}
             </>}
+            {!this.state.noMore &&
+            <View style={styles.loadMoreView}>
+              <TouchableOpacity onPress={() => this.loadMore()} style={styles.loadMoreBT}>
+                <Text style={styles.loadMoreText}>
+                  LOAD MORE
+                </Text>
+              </TouchableOpacity>
+            </View>
+            }
           </ScrollView>
         </>
       </DrawerWrapper>
@@ -462,5 +507,28 @@ const styles = StyleSheet.create({
     backgroundColor: 'red',
     zIndex: 1,
     borderRadius: 100
+  },
+  loadMoreBT: {
+    width: 300,
+    height: 40,
+    backgroundColor: '#10a2ef',
+    justifyContent: 'center',
+    alignItems:'center',
+    borderRadius: 5
+  },
+  loadMoreText:{
+    color: '#fff',
+    fontSize: 18,
+    textAlign: 'center'
+  },
+  loadMoreView: {
+    width: Dimensions.get('window').width / 1.2,
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    paddingVertical: 15, 
+    borderWidth: 1,
+    borderRadius: 10, 
+    marginBottom: 10,
+    borderColor: '#EDF1F4'
   }
 });

@@ -21,7 +21,7 @@ import {
   user_reviews
 } from '../../services/userReviews';
 import { StackViewTransitionConfigs } from 'react-navigation-stack';
-
+let offsetNum = 2;
 const SubReviewList = props => {
   let subrating = Math.round((parseFloat(props.communication_level) + parseFloat(props.quality_of_delivered_work) + parseFloat(props.recommended_for_others))/3*10)/10
     return(
@@ -64,44 +64,48 @@ const SubReviewList = props => {
     )
 }
 const ReviewCard = (props) => {
-  const {userProfile} = props
+  const {userProfile, reviewData, rootId, reviewRating, reviewCount} = props;
   const [data, setData] = useState('');
-  const [review, setReview] = useState('');
-  const [rating, setRating] = useState('');
-  const [totalrating, setTotalRating] = useState(0);
   const [comRating, setComRating] = useState('');
   const [quaRating, setQuaRating] = useState('');
   const [recomRating, setRecomRating] = useState('');
+  console.log("reviewData==========",reviewData)
   const getRatings = async (token, id, type) => {
-    const users_review_response = await review_detail(token, props.rootId)
+    const users_review_response = await review_detail(token, props.rootId, 0)
     if (users_review_response.status === 1) {
       setData(users_review_response.data)
       // setReview(users_review_response.data)
     }
   } 
 
-  useEffect(() => {
-    console.log("total========",data)
-    let total = 0;
-    let rate = 0;
-    let totalcom = 0;
-    let totalqua = 0;
-    let totalrecom = 0;
-    if (data){
-      data.map((item) => {
-        rate = Math.round(parseFloat((parseFloat(item.communication_level) + parseFloat(item.quality_of_delivered_work) + parseFloat(item.recommended_for_others))/3)*10)/10
-        total =  total + rate 
-        totalcom = totalcom + parseFloat(item.communication_level);
-        totalqua = totalqua + parseFloat(item.quality_of_delivered_work);
-        totalrecom = totalrecom + parseFloat(item.recommended_for_others);
-      })
-      setTotalRating(total)
-      setComRating(totalcom)
-      setQuaRating(totalqua)
-      setRecomRating(totalrecom)
+  // useEffect(() => {
+  //   let total = 0;
+  //   let rate = 0;
+  //   let totalcom = 0;
+  //   let totalqua = 0;
+  //   let totalrecom = 0;
+  //   if (data){
+  //     data.map((item) => {
+  //       rate = Math.round(parseFloat((parseFloat(item.communication_level) + parseFloat(item.quality_of_delivered_work) + parseFloat(item.recommended_for_others))/3)*10)/10
+  //       total =  total + rate 
+  //       totalcom = totalcom + parseFloat(item.communication_level);
+  //       totalqua = totalqua + parseFloat(item.quality_of_delivered_work);
+  //       totalrecom = totalrecom + parseFloat(item.recommended_for_others);
+  //     })
+  //     setTotalRating(total)
+  //     setComRating(totalcom)
+  //     setQuaRating(totalqua)
+  //     setRecomRating(totalrecom)
+  //   }
+  // }, [data])
+  loadMore = async() => {
+    const users_review_response = await review_detail(props.token, props.rootId, offsetNum)
+    if (users_review_response.status === 1) {
+      offsetNum = users_review_response.nextoffset
+      setData([...data,...users_review_response.data])
+      // setReview(users_review_response.data)
     }
-  }, [data])
-
+  }
   useEffect(() => {
     if (userProfile) {
       getRatings(props.token, userProfile.id, userProfile.type)
@@ -111,18 +115,16 @@ const ReviewCard = (props) => {
     <View style={styles.reviewCard}>
       <View style={{flexDirection: 'row'}}>
         <Text style={styles.description}>Reviews</Text>
-        {totalrating != 0 &&
         <Rating
           type="star"
           fractions={1}
-          startingValue={Math.round((totalrating/data.length)*10)/10}
+          startingValue={Math.round((reviewRating)*10)/10}
           readonly
           imageSize={20}
           onFinishRating={this.ratingCompleted}
         />
-        }
-        <Text style={styles.ratingTextStyle}>{JSON.stringify(Math.round((totalrating/data.length)*10)/10).length == 1? JSON.stringify(Math.round((totalrating/data.length)*10)/10)+'.0':Math.round((totalrating/data.length)*10)/10}</Text>
-        <Text style={styles.ratingTextStyle}>({data.length})</Text>
+        <Text style={styles.ratingTextStyle}>{reviewRating}</Text>
+        <Text style={{ color : '#212529' , fontSize : 14 , fontWeight : 'bold'}}>({reviewCount})</Text>
       </View>
       <View style={styles.subreview}>
         <View style={styles.subreviewItem}>
@@ -130,17 +132,17 @@ const ReviewCard = (props) => {
             COMMUNICATION LEVEL
           </Text>
           <View style={{flexDirection: 'row'}}>
-            {comRating != 0 &&
+            {reviewData.communication_level != 0 &&
             <Rating
               type="star"
               fractions={1}
-              startingValue={Math.round((comRating/data.length)*10)/10}
+              startingValue={Math.round((reviewData.communication_level/reviewCount))}
               readonly
               imageSize={16}
               onFinishRating={this.ratingCompleted}
             />
             }
-            <Text style={styles.ratingTextStyle}>{JSON.stringify(Math.round((comRating/data.length)*10)/10).length == 1? JSON.stringify(Math.round((comRating/data.length)*10)/10)+'.0':Math.round((comRating/data.length)*10)/10}</Text>
+            <Text style={styles.ratingTextStyle}>{JSON.stringify(Math.round((reviewData.communication_level/reviewCount)*10)/10).length == 1? JSON.stringify(Math.round((reviewData.communication_level/reviewCount)*10)/10)+'.0':Math.round((reviewData.communication_level/reviewCount)*10)/10}</Text>
           </View>
         </View>
         <View style={styles.subreviewItem}>
@@ -148,17 +150,17 @@ const ReviewCard = (props) => {
             QUALITY OF WORK
           </Text>
           <View style={{flexDirection: 'row'}}>
-            {quaRating != 0 &&
+            {reviewData.quality_of_delivered_work != 0 &&
             <Rating
               type="star"
               fractions={1}
-              startingValue={Math.round((quaRating/data.length)*10)/10}
+              startingValue={Math.round((reviewData.quality_of_delivered_work/reviewCount))}
               readonly
               imageSize={16}
               onFinishRating={this.ratingCompleted}
             />
             }
-            <Text style={styles.ratingTextStyle}>{JSON.stringify(Math.round((quaRating/data.length)*10)/10).length == 1? JSON.stringify(Math.round((quaRating/data.length)*10)/10)+'.0':Math.round((quaRating/data.length)*10)/10}</Text>
+            <Text style={styles.ratingTextStyle}>{JSON.stringify(Math.round((reviewData.quality_of_delivered_work/reviewCount)*10)/10).length == 1? JSON.stringify(Math.round((reviewData.quality_of_delivered_work/reviewCount)*10)/10)+'.0':Math.round((reviewData.quality_of_delivered_work/reviewCount)*10)/10}</Text>
           </View>
         </View>
         <View style={styles.subreviewItem}>
@@ -166,17 +168,17 @@ const ReviewCard = (props) => {
             RECOMMEND TO OTHERS
           </Text>
           <View style={{flexDirection: 'row'}}>
-            {recomRating != 0 &&
+            {reviewData.recommended_for_others != 0 &&
             <Rating
               type="star"
               fractions={1}
-              startingValue={Math.round((recomRating/data.length)*10)/10}
+              startingValue={Math.round((reviewData.recommended_for_others/reviewCount))}
               readonly
               imageSize={16}
               onFinishRating={this.ratingCompleted}
             />
             }
-            <Text style={styles.ratingTextStyle}>{JSON.stringify(Math.round((recomRating/data.length)*10)/10).length == 1? JSON.stringify(Math.round((recomRating/data.length)*10)/10)+'.0':Math.round((recomRating/data.length)*10)/10}</Text>
+            <Text style={styles.ratingTextStyle}>{JSON.stringify(Math.round((reviewData.recommended_for_others/reviewCount)*10)/10).length == 1? JSON.stringify(Math.round((reviewData.recommended_for_others/reviewCount)*10)/10)+'.0':Math.round((reviewData.recommended_for_others/reviewCount)*10)/10}</Text>
           </View>
         </View>
       </View>
@@ -191,7 +193,7 @@ const ReviewCard = (props) => {
         />
       }
       <View style={{alignItems:'center', marginTop: 20}}>
-        <TouchableOpacity style={styles.loadMoreBT}>
+        <TouchableOpacity onPress={loadMore} style={styles.loadMoreBT}>
           <Text style={styles.loadMoreText}>
             Load More
           </Text>

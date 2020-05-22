@@ -20,7 +20,7 @@ import DrawerWrapper from '../../commons/rightDrawerWrapper'
 
 import { my_shopping } from '../../services/myShopping'
 import Details from './details';
-
+let offsetNum = 5;
 class MyShopping extends React.Component {
   constructor(props) {
     super(props);
@@ -29,22 +29,28 @@ class MyShopping extends React.Component {
       myShopping: [],
       counts: [],
       loader: true,
+      message: '',
+      noMore: false
     }
   }
   componentDidMount = async () => {
     console.disableYellowBox = true;
 
     const response = await my_shopping(this.props.token, 'active')
+    console.log("response===========",response)
     this.setState({ counts: response.data, loader: false })
-    this.setState({ myShopping: response.data })
+    this.setState({ myShopping: response.data.orders }, () => {
+      if (this.state.myShopping.length<5){
+        this.setState({noMore:true})
+      }
+    })
 
-    const socket = this.props.screenProps
+    const socket = global.socket;
     socket.on('user_message', (data) => {
       const userMessage = JSON.parse(data)
       if (userMessage.type == "user_login") {
-        this.state.myShopping.orders.map((item, index) => {
+        this.state.myShopping.map((item, index) => {
           if (item.o_buyer_id == userMessage.data.user_id) {
-            console.log("in my shopping socket connection use online...............", data)
             item.is_online = 1
             let index = this.state.myShopping.findIndex((item) => {
               return item.o_buyer_id == userMessage.data.user_id
@@ -55,9 +61,8 @@ class MyShopping extends React.Component {
           }
         })
       } else if (userMessage.type == "user_logout") {
-        this.state.myShopping.orders.map((item, index) => {
+        this.state.myShopping.map((item, index) => {
         if (item.o_buyer_id == userMessage.data.user_id) {
-          console.log("in my shopping socket connection use online...............", data)
           item.is_online = 0
           let index = this.state.myShopping.findIndex((item) => {
             return item.o_buyer_id == userMessage.data.user_id
@@ -74,7 +79,30 @@ class MyShopping extends React.Component {
   fetchShopping = async (type) => {
     this.setState({ type: type })
     const response = await my_shopping(this.props.token, type)
-    this.setState({ myShopping: response.data })
+    this.setState({ myShopping: response.data.orders }, () => {
+      if (this.state.myShopping.length<5){
+        this.setState({noMore:true})
+      }
+      else{
+        this.setState({noMore:false})
+      }
+    })
+  }
+  loadMore = async() => {
+    if (this.state.message == "no data") {
+      this.setState({noMore:true})
+      return;
+    }
+    else{
+      const response = await my_shopping(this.props.token, this.state.type, offsetNum)
+      this.setState({ counts: response.data, loader: false, message:response.message})
+      if (response.status == 1){
+        offsetNum = offsetNum+5;
+        this.setState(prevState => ({
+          myShopping: [...prevState.myShopping, ...response.data.orders]
+        }))
+      }
+    }
   }
 
   showCard = (item, total) => {
@@ -293,7 +321,7 @@ class MyShopping extends React.Component {
                 </Picker>
               </View>
 
-              {this.state.myShopping.orders && !this.state.myShopping.orders.length > 0 &&
+              {this.state.myShopping && !this.state.myShopping.length > 0 &&
                 <>
                   <View style={[styles.cardView, { justifyContent: 'center', alignItems: 'center', alignContent: 'center' }]}>
                     <Text style={[styles.transaction_date, { padding: 30, marginTop: 0 }]}>Nothing yet to show !</Text>
@@ -302,18 +330,29 @@ class MyShopping extends React.Component {
               }
 
               <View>
-                {this.state.myShopping && this.state.myShopping.orders && this.props.type == 0 && this.state.myShopping.orders.map((item, index) => {
+                {this.state.myShopping && this.props.type == 0 && this.state.myShopping.map((item, index) => {
                   let total = item.o_amount + item.o_processing_fees
                   return (
+                    <>
                     <TouchableOpacity onPress={() => { this.props.navigation.navigate('OrderDetails', { orderDetails: item }) }}>
                       {
                         this.showCard(item, total)
                       }
                     </TouchableOpacity>
+                   
+                    </>
                   );
                 })}
               </View>
-
+              {!this.state.noMore&&
+              <View style={styles.loadMoreView}>
+                <TouchableOpacity onPress={() => this.loadMore()} style={styles.loadMoreBT}>
+                  <Text style={styles.loadMoreText}>
+                    LOAD MORE
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              }
               <View>
                 {this.state.myShopping && this.state.myShopping.orders && this.props.type == 1 && this.state.myShopping.orders.map((item, index) => {
                   let total = item.o_amount + item.o_processing_fees
@@ -527,6 +566,29 @@ const styles = StyleSheet.create({
     backgroundColor: 'red',
     zIndex: 1,
     borderRadius: 100
+  },
+  loadMoreBT: {
+    width: 300,
+    height: 40,
+    backgroundColor: '#10a2ef',
+    justifyContent: 'center',
+    alignItems:'center',
+    borderRadius: 5
+  },
+  loadMoreText:{
+    color: '#fff',
+    fontSize: 18,
+    textAlign: 'center'
+  },
+  loadMoreView: {
+    width: Dimensions.get('window').width / 1.2,
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    paddingVertical: 15, 
+    borderWidth: 1,
+    borderRadius: 10, 
+    marginBottom: 10,
+    borderColor: '#EDF1F4'
   }
 });
 

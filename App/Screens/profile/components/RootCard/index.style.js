@@ -322,5 +322,18 @@ export default StyleSheet.create({
         top:'50%',
         right:0
 
+    },
+    loadMoreBT: {
+        width: 300,
+        height: 40,
+        backgroundColor: '#10a2ef',
+        justifyContent: 'center',
+        alignItems:'center',
+        borderRadius: 5
+    },
+    loadMoreText:{
+        color: '#fff',
+        fontSize: 18,
+        textAlign: 'center'
     }
 });

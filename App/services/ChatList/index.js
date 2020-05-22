@@ -1,7 +1,7 @@
 import config from '../../config';
 
 export const getPreviousChats = (token, type) => {
-  console.log("in service function......", token);
+  // console.log("in service function......", token);
   return fetch(config.conversation_list, {
     method: 'POST',
     headers: {
@@ -18,7 +18,7 @@ export const getPreviousChats = (token, type) => {
     return response.json();
   })
   .then(json => {
-    console.log("response.......", json)
+    // console.log("response.......", json)
       return json;
     });
 }
@@ -66,7 +66,7 @@ export const sendMessage = (con_id, message, token) => {
       return responseJson;
     })
     .catch((error) => {
-      console.error("in send message",error);
+      // console.error("in send message",error);
     });
 }
 export const eventRead = (con_id, token) => {
@@ -86,7 +86,7 @@ export const eventRead = (con_id, token) => {
       return responseJson;
     })
     .catch((error) => {
-      console.error("in send messageeeeeeeeeeeeeee",error);
+      // console.error("in send messageeeeeeeeeeeeeee",error);
     });
 }
 export const eventTyping = (con_id, token) => {
@@ -159,9 +159,11 @@ export const loadMoreChat = (con_id, token, offsetNum) => {
 }
 
 export const uploadFile = (fileOptions, con_id, waterMark, token, isvoice) => {
-    let fileName = fileOptions.split('/')
-    console.log("recording==============", fileOptions, fileName[fileName.length-1])
-    // return
+    let fileName;  
+    if (isvoice){
+      fileName = fileOptions.split('/')
+      console.log("recording==============", fileOptions, fileName[fileName.length-1])
+    }
     const formData = new FormData();
     if (isvoice){
       formData.append('files', {

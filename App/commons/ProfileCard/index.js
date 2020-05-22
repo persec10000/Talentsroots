@@ -48,9 +48,8 @@ const ProfileCard = props => {
         }
     }
 
-    console.log("Props of socket", props.socket)
     useEffect(() => {
-        const socket = props.socket
+        const socket = global.socket
         socket.on('user_message', (data) => {
           const userMessage = JSON.parse(data)
           if (userMessage.type == "user_login") {
@@ -102,7 +101,8 @@ const ProfileCard = props => {
                     onPress={() =>{
                     console.log('openprofile',props.r_user_id)  
                     props.navigation.navigate('Profile', {
-                    user_id: data.id
+                    user_id: data.id,
+                    root_id: props.rootId
                     })}}
                     style={{flexDirection: 'row', justifyContent:'center',alignItems:'center' }}>
                     <Text style={styles.profileNameStyle}>

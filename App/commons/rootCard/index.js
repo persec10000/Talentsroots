@@ -7,7 +7,7 @@ import styles from './index.style';
 RootCard = props => {
   const [online, setOnline] = useState( props.is_online == 1 ? true : false)
   useEffect(() => {
-    const socket = props.socket
+    const socket = global.socket
     socket.on('user_message', (data) => {
       const userMessage = JSON.parse(data)
       if (userMessage.type == "user_login") {
@@ -65,7 +65,8 @@ RootCard = props => {
           <TouchableOpacity
             onPress={() => {
               props.navigation.navigate('Profile', {
-                user_id: props.r_user_id
+                user_id: props.r_user_id,
+                root_id: props.r_id
               })
             }}
             style={{ flexDirection: 'row' }}>

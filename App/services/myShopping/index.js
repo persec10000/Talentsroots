@@ -1,6 +1,6 @@
 import config from '../../config'
 
-export const my_shopping = async (token, type) => {
+export const my_shopping = async (token, type, offsetNum) => {
   console.log("shoppinggggggg",type)
   return await fetch(config.myShopping, {
     method: "POST",
@@ -10,7 +10,8 @@ export const my_shopping = async (token, type) => {
       "auth-token": token
     },
     body: JSON.stringify({
-      type: type
+      type: type,
+      offset: offsetNum
     })
   })
     .then(response => {

@@ -1,6 +1,6 @@
 import config from '../../config'
 
-export const my_sales = async (token, type) => {
+export const my_sales = async (token, type, offsetNum) => {
     return await fetch(config.mysales,{
       method: "POST",
       headers: {
@@ -9,7 +9,8 @@ export const my_sales = async (token, type) => {
           "auth-token": token
         },
         body:JSON.stringify({
-          type: type
+          type: type,
+          offset: offsetNum
         })
     })
     .then(response => {

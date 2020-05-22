@@ -9,8 +9,8 @@ import {
     Animated,
     TouchableWithoutFeedback
 } from 'react-native';
-import SocketIOClient from 'socket.io-client/dist/socket.io';
 import { getPreviousChats, loadMorePreviousChats } from '../services/ChatList';
+import SocketIOClient from 'socket.io-client/dist/socket.io';
 import {
     widthPercentageToDP as wp, heightPercentageToDP,
 } from '../commons/responsive_design';
@@ -23,6 +23,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 
 const ChatIcon = (props) => {
     const [getMessage, setGetMessage] = useState('false');
+    const [globalSocket, setGolbalSocket] = useState('');
     const [chats, setChats] = useState([]);
     const [typing, setTyping] = useState(false)
     const [item, setItem] = useState('all');
@@ -54,7 +55,7 @@ const ChatIcon = (props) => {
         inputRange: [0, 1],
         outputRange: [0, 1]
     });
-
+    
     const getChats = async (type) => {
         setItem(type)
         let response = await getPreviousChats(props.token, type);
@@ -93,20 +94,19 @@ const ChatIcon = (props) => {
             return response.data
         }
     }
+    
     useEffect(() => {
         getChats('')
     }, [props.token])
-
+  
     useEffect(() => {
-        const socket  = global.socket;
+        let socket = global.socket;
         socket.on('user_message', (data) => {
-
             const userMessage = JSON.parse(data)
             if (userMessage.type == "chat_event_typing") {
                 console.log("chat_event_typing", userMessage);
                 chats && chats.map((item) => {
                     if (item.conversation_id == userMessage.data.conversation_id) {
-                        console.log("in match logout ++++++++++++++++++")
                         item.isTyping = true
                         setTyping(true)
                         let index = chats.findIndex((item) => {

@@ -9,9 +9,9 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  RefreshControl,
-  AsyncStorage
+  RefreshControl
 } from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
 import Header from '../../commons/header';
 import styles from './index.style';
@@ -25,6 +25,7 @@ import RecentlyViewed from './component/recentlyViewed';
 import RecentlyBought from './component/recentlyBought';
 import { get_roots } from '../../services/getRoots';
 import { registerDevice } from '../../services/home/index'
+import SocketIOClient from 'socket.io-client/dist/socket.io';
 import firebase  from 'react-native-firebase';
 
 import {
@@ -34,11 +35,7 @@ import {
 } from './actions/actions';
 import { profilerequest } from '../profile/actions/actions';
 
-
 const Home = (props) => {
-  const socket = props.screenProps;
-  // let socket = SocketIOClient(`${URL}?user_id=` + props.userId);
-  
   const [allRoots, setAllRoots] = useState('');
   const [latestRoots, setLatestRoots] = useState([]);
   const [topRatedRoots, setTopRatedRoots] = useState([]);
@@ -49,8 +46,8 @@ const Home = (props) => {
   const [popularRootsOffset, setPopularRootsOffset] = useState([]);
   const [recentlyBoughtRoots, setRecentlyBoughtRoots] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false)
-
+  const [isLoading, setIsLoading] = useState(false);
+  const [url, setUrl] = useState('');
   //refresh function
   function wait(timeout) {
     return new Promise(resolve => {
@@ -79,8 +76,33 @@ const Home = (props) => {
   }
 
   useEffect(() => {
-    getTokens()
-  }, [])
+    let socket = SocketIOClient(`https://${global.socketURL}?user_id=` + props.userId);
+    global.socket = socket;
+    socket.on('disconnect', (res, err) => console.log("result======>",res, err))
+    if (props.userId){
+      socket.on('connect', () => {
+          console.log('connected in app at socket.tribital.ml?user_id=' + props.userId)
+      });
+      socket.on('connect_error', (err) => { console.log("SOCKET CONNECTION ERR ----", err) })
+    }
+    getTokens();
+  }, []);
+  
+  // useEffect(() => {
+  //   console.log('bbbbbbbbbbbbbbbbbbb', url)
+  //   if (url != ''){
+  //     let socket = SocketIOClient(`https://${url}?user_id=` + props.userId);
+  //     global.socket = socket;
+  //     console.log("socketttttttttttttttt",global.socket)
+  //     socket.on('disconnect', (res, err) => console.log("result======>",res, err))
+  //     if (props.userId){
+  //       socket.on('connect', () => {
+  //           console.log('connected in app at socket.tribital.ml?user_id=' + props.userId)
+  //       });
+  //       socket.on('connect_error', (err) => { console.log("SOCKET CONNECTION ERR ----", err) })
+  //     }
+  //   }   
+  //   }, [url])
 
   useEffect(() => {
     props.dispatch(rootsRequest(props.login.userToken, 'all'))
@@ -214,7 +236,7 @@ const Home = (props) => {
                 <FlatList
                   data={topRatedRoots}
                   renderItem={({ item }) => (
-                    <RootCard {...item} navigation={props.navigation} socket={props.screenProps} />
+                    <RootCard {...item} navigation={props.navigation} socket={global.socket} />
                   )}
                   keyExtractor={(item, index) => index.toString()}
                 />
@@ -249,7 +271,7 @@ const Home = (props) => {
                 <FlatList
                   data={popularRoots}
                   renderItem={({ item }) => (
-                    <RootCard {...item} navigation={props.navigation} socket={props.screenProps}/>
+                    <RootCard {...item} navigation={props.navigation} socket={global.socket}/>
                   )}
                   keyExtractor={(item, index) => index.toString()}
                 />
@@ -284,7 +306,7 @@ const Home = (props) => {
                 <FlatList
                   data={latestRoots}
                   renderItem={({ item }) => (
-                    <RootCard {...item} navigation={props.navigation} socket={socket} />
+                    <RootCard {...item} navigation={props.navigation} socket={global.socket} />
                   )}
                   keyExtractor={(item, index) => index.toString()}
                 />
@@ -318,7 +340,7 @@ const Home = (props) => {
                   horizontal
                   data={recentlyViewedRoots}
                   renderItem={({ item }) => (
-                    <RootCardHorizontal {...item} navigation={props.navigation} socket={socket}/>
+                    <RootCardHorizontal {...item} navigation={props.navigation} socket={global.socket}/>
                   )}
                   keyExtractor={(item, index) => index.toString()}
                 />
@@ -344,7 +366,7 @@ const Home = (props) => {
                   horizontal
                   data={recentlyBoughtRoots}
                   renderItem={({ item }) => (
-                    <RootCardHorizontal {...item} navigation={props.navigation} socket={socket}/>
+                    <RootCardHorizontal {...item} navigation={props.navigation} socket={global.socket}/>
                   )}
                   keyExtractor={(item, index) => index.toString()}
                 />

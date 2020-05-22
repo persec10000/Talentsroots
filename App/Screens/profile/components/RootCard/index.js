@@ -11,10 +11,13 @@ import ProgressCircle from 'react-native-progress-circle'
 import RootCardItem from '../rootCardItem';
 import Icon from "react-native-vector-icons/FontAwesome";
 import { widthPercentageToDP } from '../../../../commons/responsive_design';
-
+import {
+    user_roots
+  } from '../../../../services/otherRoots'
+let offsetNum = 6;
 const RootsCard = props => {
-    const { data , myRoots } = props;
-
+    const { data , myRoots, position, userId, token } = props;
+    const [rootData, setRootData] = useState(props.myRoots);
 
     //scroll
     const refScroll = createRef();
@@ -28,12 +31,26 @@ const RootsCard = props => {
         }
     }, [scrollCount])
 
+    const loadMore = async() => {
+        if (offsetNum == false){
+            return;
+        }
+        else {
+            const other_roots_response = await user_roots(token,userId, offsetNum)
+            if (other_roots_response.status === 1) {
+                offsetNum = other_roots_response.nextoffset; 
+                setRootData([...rootData,...other_roots_response.data])
+            // setReview(users_review_response.data)
+            }
+        }
+        
+    }
 
     return (
         <>
         {/*Other Roots Section*/}
         {
-            myRoots.length > 0 ? 
+            rootData.length > 0 ? 
             <>
             <View>
                 <View style={styles.otherRootsTitleStyle}>
@@ -43,17 +60,24 @@ const RootsCard = props => {
                 </View>
                 {/*Other roots Section*/}
                 {
-                  myRoots && myRoots.length > 0 ?
+                  rootData && rootData.length > 0 ?
                         <View style={{ paddingVertical: 10 }}>
                             <ScrollView
                              horizontal={true}
                              ref={refScroll}
                             >
                             {
-                                myRoots.map((item,index) => {
+                                rootData.map((item,index) => {
                                     return <RootCardItem key={index} item={item} navigation={props.navigation} />
                                 })
                             }
+                            <View style={{borderWidth: 1,borderRadius: 10,borderColor: '#EDF1F4',justifyContent: 'center', alignItems: 'center', paddingVertical: 15}}>
+                                <TouchableOpacity onPress={() => loadMore()} style={styles.loadMoreBT}>
+                                    <Text style={styles.loadMoreText}>
+                                    LOAD MORE
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
                             </ScrollView>
                             {/* <FlatList
                                 ref={refScroll}
@@ -63,7 +87,7 @@ const RootsCard = props => {
                                 keyExtractor={item => item.id}
                             /> */}
                             {
-                                myRoots.length > 1 ? 
+                                rootData.length > 1 ? 
                                 <Icon 
                                 style={styles.rightArrow}
                                 name="chevron-circle-right" 

@@ -15,12 +15,13 @@ import {
 import { Button, Fab } from 'native-base';
 import styles from './paymentScreen.styles';
 import DrawerWrapper from '../../commons/rightDrawerWrapper';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import PayPal from 'react-native-paypal-wrapper';
 import { orderSuccess } from '../../services/order';
 import { connect } from 'react-redux';
 import { WebView } from 'react-native-webview';
 import { getUserBalance } from '../../services/home/index'
-import { getPaymentHTML } from '../../services/payments/payments'
+import { getPaymentHTML, applyCoupon } from '../../services/payments/payments'
 import { TouchableOpacity } from 'react-native-gesture-handler';
 
 
@@ -32,20 +33,20 @@ const PaymentScreen = (props) => {
   const [hyperPay, setHyperPay] = useState(false);
   const [checkoutId, setCheckoutId] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [balance, setBalance] = useState(0)
+  const [balance, setBalance] = useState(0);
+  const [couponAmount, setCouponAmount] = useState(0);
+  const [finalPrice, setFinalPrice] = useState(0);
   const [html, setHtml] = useState('');
 
   console.log('passedRootDetails',passedRootDetails)
 
   const getUserBalanceDetails = async () => {
     let balance = await getUserBalance(props.token)
-    console.log("balance", balance)
     setBalance(balance.data);
     setIsLoading(false)
   }
 
   const getHTML = async () => {
-    console.log("===========================<<<<<<<<<<<<<<<<<<")
     let html = await getPaymentHTML(
       props.token,
       passedRootDetails.r_user_id,
@@ -66,10 +67,12 @@ const PaymentScreen = (props) => {
     getHTML()
   }, []);
 
+  const payWithCashu = () => {
 
+  }
   const payWithPaypal = () => {
     console.log("=====> in paypal integration <=====", passedRootDetails.final_price, props.id)
-    PayPal.initialize(PayPal.SANDBOX, "AQD8sL1GHiTwqvf0v17w9H7EdUkbRhP3nXeVNcDjFs6dL-B3YJKtUIJkMi5G2OOMwKbytVZYVSqKyigD");
+    PayPal.initialize(PayPal.PRODUCTION, "AaShd2IX_sUUJFV_xxKzTRoVOz9INwriExNxuw_FjpHGA0StTVjRDALySnSzpkTsc3NwxAQzFupRLsGq");
     PayPal.pay({
       price: passedRootDetails.final_price.toString(),
       currency: 'USD',
@@ -89,12 +92,16 @@ const PaymentScreen = (props) => {
         passedRootDetails.revision_price,
         props.token)
         .then((orderSuccess) => {
-          console.log("+++++++++++", orderSuccess)
-          return props.navigation.navigate('Details', {
+          return props.navigation.navigate('OrderDetails', {
             orderDetails: {
-              o_id: passedRootDetails.orderId,
+              o_order_id: orderSuccess.data.order_id,
               o_seller_id: passedRootDetails.r_user_id,
-              o_buyer_id: props.id 
+              o_buyer_id: props.id,
+              o_amount:parseInt(passedRootDetails.final_price),
+              o_processing_fees: passedRootDetails.processing_fees,
+              profile: passedRootDetails.profile,
+              description: passedRootDetails.r_desc,
+              name: passedRootDetails.username
             }
           })
         })
@@ -118,14 +125,36 @@ const PaymentScreen = (props) => {
   }
 
   const checkUrlState = (url) => {
-    console.log("======>>>>>>", url)
     if (url.includes('https://www.talentsroot.com/order/return')) {
       setHyperPay(false)
       props.navigation.navigate('OrderDetails', { orderDetails: item })
     }
   }
 
+  const apply_Coupon = async() => {
+    if (couponCode == ''){
+      Alert.alert('Please add your coupon code')
+    }
+    let data = {
+      price: passedRootDetails.total,
+      coupon: couponCode
+    };
+    let response = await applyCoupon(props.token, data)
+    console.log("coupon=========",response)
+    if (response.status == 1){
+      Alert.alert(response.message);
+      setCouponAmount(response.data.couponAmount);
+      setFinalPrice(response.data.finalprice);
+    }
+  }
+  
+  const removeCoupon = async() => {
+    setCouponAmount(0);
+    setFinalPrice(0);
+  }
+
   const orderNow = async () => {
+    console.log(passedRootDetails.r_user_id, props.id, passedRootDetails, props.token)
     let res = await orderSuccess(
       passedRootDetails.r_user_id,
       props.id,
@@ -139,8 +168,21 @@ const PaymentScreen = (props) => {
       passedRootDetails.revision_days,
       passedRootDetails.revision_price,
       props.token)
+    console.log("res==========",res)
     if (res.status == 1) {
-      Alert.alert('Order created successfully')
+      Alert.alert('Order created successfully');
+      props.navigation.navigate('OrderDetails', {
+        orderDetails: {
+          o_order_id: res.data.order_id,
+          o_seller_id: passedRootDetails.r_user_id,
+          o_buyer_id: props.id,
+          o_amount:parseInt(passedRootDetails.final_price),
+          o_processing_fees: passedRootDetails.processing_fees,
+          profile: passedRootDetails.profile,
+          description: passedRootDetails.r_desc,
+          name: passedRootDetails.username
+        }
+      })
     } else {
       Alert.alert("Something went wrong Please try again later")
     }
@@ -152,8 +194,13 @@ const PaymentScreen = (props) => {
       hyperPay ?
         <WebView
           source={{html: html}}
+          injectedJavaScript={`
+          const meta = document.createElement('meta'); 
+          meta.setAttribute('content', 'width=width, initial-scale=1, maximum-scale=1, user-scalable=2.0'); 
+          meta.setAttribute('name', 'viewport'); 
+          document.getElementsByTagName('head')[0].appendChild(meta); `}
           onNavigationStateChange={state => checkUrlState(state.url)}
-          style={{flex: 1}}
+          style={{flex: 1, top:130}}
         />
         :
         <DrawerWrapper {...props}>
@@ -189,7 +236,7 @@ const PaymentScreen = (props) => {
                     <View style={styles.profileLeftViewStyle} >
                       <Image
                         style={styles.profileLeftViewImageStyle}
-                        source={{ uri: passedRootDetails.r_image }}
+                        source={{ uri: passedRootDetails.profile }}
                       />
                       <Text style={styles.profileLeftViewNameStyle}>
                         {passedRootDetails.username}
@@ -199,11 +246,55 @@ const PaymentScreen = (props) => {
                   <Text style={styles.orderIdTextStyle}>
                       Order #{passedRootDetails.orderId}
                   </Text>
+                  {passedRootDetails.delivery_price != undefined && passedRootDetails.delivery_price != 0 &&
+                  <>
+                  <View style={styles.doshline} />
+                  <View style={styles.tableItem} >
+                    <Text style={styles.tableItemTitle}>Extra Fast Delivery({passedRootDetails.delivery_days} day)</Text>
+                    <View style={styles.tableItemRightSide}>
+                      <Text style={styles.tableItemRightText}>${passedRootDetails.delivery_price}</Text>
+                    </View>
+                  </View>
+                  </>
+                  }
+                  {passedRootDetails.extra1Price != undefined && passedRootDetails.extra1Price != ''&&
+                  <>
+                  <View style={styles.doshline} />
+                  <View style={styles.tableItem} >
+                    <Text style={styles.tableItemTitle}>{passedRootDetails.extra1Description}({passedRootDetails.extra1Days} day)</Text>
+                    <View style={styles.tableItemRightSide}>
+                      <Text style={styles.tableItemRightText}>${passedRootDetails.extra1Price}</Text>
+                    </View>
+                  </View>
+                  </>
+                  }
+                  {passedRootDetails.extra2Price != undefined && passedRootDetails.extra2Price != ''&&
+                  <>
+                  <View style={styles.doshline} />
+                  <View style={styles.tableItem} >
+                    <Text style={styles.tableItemTitle}>{passedRootDetails.extra2Description}({passedRootDetails.extra2Days} day)</Text>
+                    <View style={styles.tableItemRightSide}>
+                      <Text style={styles.tableItemRightText}>${passedRootDetails.extra2Price}</Text>
+                    </View>
+                  </View>
+                  </>
+                  }
+                  {passedRootDetails.extra3Price != undefined && passedRootDetails.extra3Price != ''&&
+                  <>
+                  <View style={styles.doshline} />
+                  <View style={styles.tableItem} >
+                    <Text style={styles.tableItemTitle}>{passedRootDetails.extra3Description}({passedRootDetails.extra3Days} day)</Text>
+                    <View style={styles.tableItemRightSide}>
+                      <Text style={styles.tableItemRightText}>${passedRootDetails.extra3Price}</Text>
+                    </View>
+                  </View>
+                  </>
+                  }
                   <View style={styles.doshline} />
                   <View style={styles.tableItem} >
                     <Text style={styles.tableItemTitle}>Delivery days:</Text>
                     <View style={styles.tableItemRightSide}>
-                      <Text style={styles.tableItemRightText}>{passedRootDetails.delivery_days} days</Text>
+                      <Text style={styles.tableItemRightText}>{passedRootDetails.days} Days</Text>
                     </View>
                   </View>
                   {
@@ -213,6 +304,7 @@ const PaymentScreen = (props) => {
                     <View style={styles.tableItem} >
                       <Text style={[styles.tableItemTitle, { fontWeight: 'bold' }]}>Balance:</Text>
                       <View style={styles.tableItemRightSide}>
+                        {/* <Text style={styles.tableItemRightText}>${passedRootDetails.used_balance}</Text> */}
                         <Text style={styles.tableItemRightText}>${passedRootDetails.used_balance}</Text>
                       </View>
                     </View>
@@ -220,16 +312,36 @@ const PaymentScreen = (props) => {
                   }
                   <View style={styles.doshline} />
                   <View style={styles.tableItem} >
-                    <Text style={styles.tableItemTitle}>Processing Fees (%):</Text>
+                    <Text style={styles.tableItemTitle}>Processing Fees (10%):</Text>
                     <View style={styles.tableItemRightSide}>
-                      <Text style={styles.tableItemRightText}>{passedRootDetails.processing_fees}</Text>
+                      <Text style={styles.tableItemRightText}>${passedRootDetails.processing_fees}</Text>
                     </View>
                   </View>
+                  {
+                    couponAmount != undefined && couponAmount !== 0 ?
+                    <>
+                    <View style={styles.doshline} />
+                    <View style={styles.tableItem} >
+                      <View style={{flexDirection:'row', flex:1}}>
+                        <Text style={[styles.tableItemTitle, { fontWeight: 'bold' }]}>Discount Amount(10%):</Text>
+                        <TouchableOpacity onPress={() => removeCoupon()} style={styles.textClose}>
+                          <Icon name="remove" size={14} color="red"/>
+                        </TouchableOpacity>
+                      </View>
+                      <View style={styles.tableItemRightSide}>
+                        <Text style={styles.tableItemRightText}>${couponAmount}</Text>
+                      </View>
+                    </View>
+                    </> : null
+                  }
                   <View style={styles.doshline} />
                   <View style={styles.tableItem} >
                     <Text style={[styles.tableItemTitle, { fontWeight: 'bold' }]}>Total:</Text>
                     <View style={styles.tableItemRightSide}>
-                      <Text style={styles.totalText}>${passedRootDetails.total}</Text>
+                      {(finalPrice != undefined && finalPrice !== 0) ?
+                      <Text style={styles.totalText}>${finalPrice}</Text>
+                      :
+                      <Text style={styles.totalText}>${passedRootDetails.total}</Text>}
                     </View>
                   </View>
                 </View>
@@ -238,21 +350,28 @@ const PaymentScreen = (props) => {
                     style={styles.couponTextInputStyle}
                     onChangeText={text => setCouponCode(text)}
                     value={couponCode}
-                    placeholder='Coupon Code'
+                    placeholder='Enter Discount Code'
                   />
-                  <TouchableOpacity style={styles.button}>
+                  <TouchableOpacity onPress={()=>apply_Coupon()} style={styles.button}>
                     <Text style={styles.buttonText}>
-                      APPLY COUPON
+                      APPLY CODE
                     </Text>
                   </TouchableOpacity>
                 </View>
-                <Image
-                  style={styles.securityImageStyle}
-                  resizeMode={'contain'}
-                  source={require('../../assets/images/secureText.png')}
-                />
+                <View style={{alignItems:'center'}}>
+                  <View style={{alignItems:'center', flexDirection: 'row', marginVertical: 10}}>
+                    <Image
+                      style={styles.securityImageStyle}
+                      resizeMode={'contain'}
+                      source={{uri: 'https://cdn.talentsroot.com/image/secure.png'}}
+                    />
+                    <Text style={{fontSize: 20, fontWeight:'700', marginLeft: 20}}>
+                      Secure Payment
+                    </Text>
+                  </View>
+                </View>
                 {
-                  passedRootDetails.final_price > balance ?
+                  passedRootDetails.total != 0 ?
                     <View style={{ justifyContent: 'center', display: 'flex', alignContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
                       <TouchableOpacity success style={styles.paymentsButton} onPress={() => payWithPaypal()}>
                         <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', alignContent: 'center' }}>
@@ -268,7 +387,7 @@ const PaymentScreen = (props) => {
                           </View>
                         </View>
                       </TouchableOpacity>
-                      <TouchableOpacity primary style={styles.paymentsButton} onPress={() => { setHyperPay(true) }}>
+                      <TouchableOpacity primary style={styles.paymentsButton} onPress={() => payWithCashu()}>
                         <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', alignContent: 'center' }}>
                           <View style={[styles.cardView]}>
                             <Image resizeMode={'contain'} source={{ uri: "https://cdn.talentsroot.com/image/CASHU.png" }} style={{ height: 20, width: 150, padding: 25 }} />
@@ -280,7 +399,7 @@ const PaymentScreen = (props) => {
                     <TouchableOpacity onPress={() => orderNow()}>
                       <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', alignContent: 'center' }}>
                         <View style={[styles.cardView]}>
-                          <Text style={[styles.transaction_date, { padding: 20, marginTop: 0, fontSize: 20, textAlign: 'center' }]}>Order Now</Text>
+                          <Text style={[styles.transaction_date, { padding: 15, marginTop: 0, fontSize: 22, textAlign: 'center', color: '#10a2ef' }]}>Order Now</Text>
                         </View>
                       </View>
                     </TouchableOpacity>

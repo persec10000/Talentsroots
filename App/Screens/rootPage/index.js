@@ -69,8 +69,18 @@ const RootPage = (props) => {
   const [fastDelivery, setFastDelivery] = useState(false);
   const [isExtra1, setIsExtra1] = useState(false);
   const [isExtra2, setIsExtra2] = useState(false);
-  const [isExtra3, setIsExtr3] = useState(false);
+  const [isExtra3, setIsExtra3] = useState(false);
+  const [extra1Price, setExtra1Price] = useState('');
+  const [extra1Days, setExtra1Days] = useState('');
+  const [extra2Price, setExtra2Price] = useState('');
+  const [extra2Days, setExtra2Days] = useState('');
+  const [extra3Price, setExtra3Price] = useState('');
+  const [extra3Days, setExtra3Days] = useState('');
+  const [extra1Description, setExtra1Description] = useState('');
+  const [extra2Description, setExtra2Description] = useState('');
+  const [extra3Description, setExtra3Description] = useState('');
   const [finalPrice, setFinalPrice] = useState(0);
+  const [deliveryDay, setDeliveryDay] = useState(0);
   const [maxDays, setMaxDays] = useState(0);
   const [revision, setRevision] = useState(0);
   const [flexiblePrice, setFlexiblePrice] = useState(0);
@@ -84,7 +94,7 @@ const RootPage = (props) => {
     setTimePassed(true);
     return () => {
       setTimePassed(false),
-        setRootDetails('');
+      setRootDetails('');
       setRatings('');
       setUserProfile('');
     }
@@ -92,7 +102,6 @@ const RootPage = (props) => {
 
   const getRootDetails = async (token, rootId) => {
     const response = await root_details(token, rootId);
-    console.log("root_details", response)
     if (response.status === 1) {
       setRootDetails(response.data);
     }
@@ -157,6 +166,13 @@ const RootPage = (props) => {
   }, [props.navigation.getParam('root_id', '')])
 
   useEffect(() => {
+    console.log(rootDetails)
+    if (rootDetails){
+      setDeliveryDay(rootDetails.r_fiixed_price.max_days);
+    }
+  }, [rootDetails])
+
+  useEffect(() => {
     if (props.navigation.getParam('user_id', '')) {
       const userId = props.navigation.getParam('user_id', '');
       getUserProfile(props.token, userId)
@@ -178,10 +194,11 @@ const RootPage = (props) => {
   useEffect(() => {
     if (extraRevision) {
       setFinalPrice(parseInt(finalPrice) + parseInt(rootDetails.r_extra.revision.price))
-      
+      setDeliveryDay(parseInt(deliveryDay) - parseInt(rootDetails.r_extra.revision.max_days))
     } else {
       if (rootDetails.r_extra && rootDetails.r_extra.revision && rootDetails.r_extra.revision.price) {
         setFinalPrice(parseInt(finalPrice) - parseInt(rootDetails.r_extra.revision.price))
+        setDeliveryDay(parseInt(deliveryDay) + parseInt(rootDetails.r_extra.revision.max_days))
       }
     }
   }, [extraRevision])
@@ -189,13 +206,66 @@ const RootPage = (props) => {
   useEffect(() => {
     if (fastDelivery) {
       setFinalPrice(parseInt(finalPrice) + parseInt(rootDetails.r_extra.fast_delivery.price))
+      setDeliveryDay(parseInt(deliveryDay) - parseInt(rootDetails.r_extra.fast_delivery.max_days))
     } else {
       if (rootDetails.r_extra && rootDetails.r_extra.fast_delivery && rootDetails.r_extra.fast_delivery.price) {
-        setFinalPrice(parseInt(finalPrice) - parseInt(rootDetails.r_extra.fast_delivery.price))
+        setFinalPrice(parseInt(finalPrice) - parseInt(rootDetails.r_extra.fast_delivery.price));
+        setDeliveryDay(parseInt(deliveryDay) + parseInt(rootDetails.r_extra.fast_delivery.max_days))
       }
     }
   }, [fastDelivery])
 
+  useEffect(() => {
+    if (isExtra1) {
+      setFinalPrice(parseInt(finalPrice) + parseInt(rootDetails.r_extra.extra1.price))
+      setDeliveryDay(parseInt(deliveryDay) + parseInt(rootDetails.r_extra.extra1.max_days))
+      setExtra1Price(rootDetails.r_extra.extra1.price)
+      setExtra1Days(rootDetails.r_extra.extra1.max_days)
+      setExtra1Description(rootDetails.r_extra.extra1.description)
+    } else {
+      if (rootDetails.r_extra && rootDetails.r_extra.extra1 && rootDetails.r_extra.extra1.price) {
+        setFinalPrice(parseInt(finalPrice) - parseInt(rootDetails.r_extra.extra1.price))
+        setDeliveryDay(parseInt(deliveryDay) - parseInt(rootDetails.r_extra.extra1.max_days))
+        setExtra1Price('')
+        setExtra1Days('')
+        setExtra1Description('')
+      }
+    }
+  }, [isExtra1])
+  useEffect(() => {
+    if (isExtra2) {
+      setFinalPrice(parseInt(finalPrice) + parseInt(rootDetails.r_extra.extra2.price))
+      setDeliveryDay(parseInt(deliveryDay) + parseInt(rootDetails.r_extra.extra2.max_days))
+      setExtra2Price(rootDetails.r_extra.extra2.price)
+      setExtra2Days(rootDetails.r_extra.extra2.max_days)
+      setExtra2Description(rootDetails.r_extra.extra2.description)
+    } else {
+      if (rootDetails.r_extra && rootDetails.r_extra.extra2 && rootDetails.r_extra.extra2.price) {
+        setFinalPrice(parseInt(finalPrice) - parseInt(rootDetails.r_extra.extra2.price))
+        setDeliveryDay(parseInt(deliveryDay) - parseInt(rootDetails.r_extra.extra2.max_days))
+        setExtra2Price('')
+        setExtra2Days('')
+        setExtra2Description('')
+      }
+    }
+  }, [isExtra2])
+  useEffect(() => {
+    if (isExtra3) {
+      setFinalPrice(parseInt(finalPrice) + parseInt(rootDetails.r_extra.extra3.price))
+      setDeliveryDay(parseInt(deliveryDay) + parseInt(rootDetails.r_extra.extra3.max_days))
+      setExtra3Price(rootDetails.r_extra.extra3.price)
+      setExtra3Days(rootDetails.r_extra.extra3.max_days)
+      setExtra3Description(rootDetails.r_extra.extra3.description)
+    } else {
+      if (rootDetails.r_extra && rootDetails.r_extra.extra3 && rootDetails.r_extra.extra3.price) {
+        setFinalPrice(parseInt(finalPrice) - parseInt(rootDetails.r_extra.extra3.price))
+        setDeliveryDay(parseInt(deliveryDay) - parseInt(rootDetails.r_extra.extra3.max_days))
+        setExtra3Price('')
+        setExtra3Days('')
+        setExtra3Description('')
+      }
+    }
+  }, [isExtra3])
   const handleAddToFavorite = (token, id) => {
 
     Alert.alert(
@@ -242,7 +312,6 @@ const RootPage = (props) => {
     
 
   const handleBuyNow = async () => {
-    console.log(flexiblePrice, maxDays, revision)
         let getFinalPrice;
         let REVISION_PRICE = 0;
         let DELIVERY_PRICE = 0;
@@ -256,6 +325,7 @@ const RootPage = (props) => {
       }
     if (finalPrice){
       getFinalPrice = await getFinalPriceService(props.token, finalPrice);
+      console.log("checkout============",getFinalPrice);
       if (fastDelivery) {
         DELIVERY_PRICE = rootDetails.r_extra.fast_delivery.price;
         DELIVERY_DAYS = parseInt(rootDetails.r_extra.fast_delivery.max_days);
@@ -279,19 +349,32 @@ const RootPage = (props) => {
         processing_fees: getFinalPrice.data.processingPrice,
         r_user_id: rootDetails.r_user_id,
         r_id: rootDetails.r_id,
-        days: DAYS,
+        days: deliveryDay,
         delivery_price: DELIVERY_PRICE,
         delivery_days: DELIVERY_DAYS,
         revision_days: REVISION_DAYS,
         revision_price: REVISION_PRICE,
         orderId: getFinalPrice.data.orderID,
-        packagePrice: getFinalPrice.data.packagePrice
+        packagePrice: getFinalPrice.data.packagePrice,
+        extra1Price: extra1Price,
+        extra1Days: extra1Days,
+        extra2Price: extra2Price,
+        extra2Days: extra2Days,
+        extra3Price: extra3Price,
+        extra3Days: extra3Days,
+        extra1Description: extra1Description,
+        extra2Description: extra2Description,
+        extra3Description: extra3Description,
+        profile: rootDetails.profile,
+        r_desc: rootDetails.r_desc
       }
     })
   }
 
   const handleContact = async (username) => {
+    console.log("username=======",username)
     const response = await get_conversation(props.token, username);
+    console.log("response===========",response)
     if (response.status === 1) {
       props.navigation.navigate('ChatScreen', { 'user': response.data.opponent, 'user_data': userProfile })
     } else {
@@ -300,7 +383,6 @@ const RootPage = (props) => {
   }
 
   const handleShare = (link) => {
-    console.log('link')
     Share.share(
       {
         message: link
@@ -430,7 +512,10 @@ const RootPage = (props) => {
             <Text style={styles.description}>Description</Text>
             <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' }}>
               <Icon name="clock-o" size={20} color="#10a2ef" />
-              <Text style={{ fontSize: 15 }}> {data.r_fiixed_price.max_days} Days</Text>
+              <Text style={{ fontSize: 15 }}> 
+                {/* {data.r_fiixed_price.max_days} Days */}
+                {deliveryDay} Days
+              </Text>
             </View>
           </View>
           <View style={styles.doshline} />
@@ -474,7 +559,7 @@ const RootPage = (props) => {
               {
                 data.r_extra.fast_delivery.price && (
                   <CheckBox
-                    title={`Extra Fast Delivary (${data.r_extra.fast_delivery.max_days} days)         $${data.r_extra.fast_delivery.price}`}
+                    title={`Extra Fast Delivary (${data.r_extra.fast_delivery.max_days} days)                   $${data.r_extra.fast_delivery.price}`}
                     checked={fastDelivery}
                     onPress={() => setFastDelivery(!fastDelivery)}
                   />)
@@ -482,10 +567,58 @@ const RootPage = (props) => {
               {
                 data.r_extra.revision.price && (
                   <CheckBox
-                    title={`Extra revision (${data.r_extra.revision.max_days} days)                  $${data.r_extra.revision.price}`}
+                    title={`Extra revision (${data.r_extra.revision.max_days} days)                             $${data.r_extra.revision.price}`}
                     checked={extraRevision}
                     onPress={() => setExtraRevision(!extraRevision)}
                   />)
+              }
+              {
+                data.r_extra.extra1.price && (
+                  <View>
+                    <View style={styles.doshline} />
+                    <CheckBox
+                      title={`${data.r_extra.extra1.description}  (${data.r_extra.extra1.max_days} days)`}
+                      checked={isExtra1}
+                      onPress={() => setIsExtra1(!isExtra1)}
+                    />
+                    <View>
+                      <Text style={{textAlign:'right'}}>
+                          ${data.r_extra.extra1.price}
+                      </Text>
+                    </View>
+                  </View>)
+              }
+              {
+                data.r_extra.extra2.price && (
+                  <View>
+                    <View style={styles.doshline} />
+                    <CheckBox
+                      title={`${data.r_extra.extra2.description}  (${data.r_extra.extra2.max_days} days)`}
+                      checked={isExtra2}
+                      onPress={() => setIsExtra2(!isExtra2)}
+                    />
+                    <View>
+                      <Text style={{textAlign:'right'}}>
+                          ${data.r_extra.extra2.price}
+                      </Text>
+                    </View>
+                  </View>)
+              }
+              {
+                data.r_extra.extra3.price && (
+                  <View>
+                    <View style={styles.doshline} />
+                    <CheckBox
+                      title={`${data.r_extra.extra3.description}  (${data.r_extra.extra3.max_days} days)`}
+                      checked={isExtra3}
+                      onPress={() => setIsExtra3(!isExtra3)}
+                    />
+                    <View>
+                      <Text style={{textAlign:'right'}}>
+                          ${data.r_extra.extra3.price}
+                      </Text>
+                    </View>
+                  </View>)
               }
             </View>          
         }</> : null}
@@ -529,8 +662,9 @@ const RootPage = (props) => {
                 <ProfileCard
                   navigation={props.navigation}
                   data={userProfile}
+                  rootId={props.navigation.getParam('root_id', '')}
                   lastPingTime={rootDetails.last_ping_time}
-                  socket={props.screenProps}
+                  socket={global.socket}
                 />
                 <View style={{ height: 25 }} />
               </> : null
@@ -542,9 +676,11 @@ const RootPage = (props) => {
             <ReviewCard
               navigation={props.navigation}
               rootId={props.navigation.getParam('root_id', '')}
-              myReviews={reviewDetails}
+              reviewRating={data.r_rating}
+              reviewCount={data.r_rating_count}
               userProfile={userProfile}
               ratings={ratings}
+              reviewData={data}
             />
             <View style={{ height: 20 }} />
           </>
@@ -558,7 +694,11 @@ const RootPage = (props) => {
                 navigation={props.navigation}
                 myRoots={otherRootsDetails}
                 data={userProfile}
-                socket={props.screenProps}
+                rootId={props.navigation.getParam('root_id', '')}
+                userId={props.navigation.getParam('user_id', '')}
+                token= {props.token}
+                socket={global.socket}
+                position={"rootPage"}
               />
               <View style={{ height: 10 }} />
             </>

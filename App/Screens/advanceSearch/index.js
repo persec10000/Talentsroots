@@ -48,12 +48,16 @@ const AdvanceSearch = (props) => {
   const [languages, setLanguages] = useState([]);
   const [country, setCountry] = useState('');
   const [countries, setCountries] = useState([]);
-  const [priceHighToLow, setPriceHighToLow] = useState('');
-  const [priceLowToHigh, setPriceLowToHigh] = useState('');
-  const [reviewsHighToLow, setReviewsHighToLow] = useState('');
-  const [reviewsLowToHigh, setReviewsLowToHigh] = useState('');
-  const [recommended, setRecommended] = useState('');
+  const [priceHighToLow, setPriceHighToLow] = useState(false);
+  const [priceLowToHigh, setPriceLowToHigh] = useState(false);
+  const [reviewsHighToLow, setReviewsHighToLow] = useState(false);
+  const [reviewsLowToHigh, setReviewsLowToHigh] = useState(false);
+  const [recommended, setRecommended] = useState(0);
   const [onlineSeller, setOnlineSeller] = useState(false);
+  const [isCheckedPriceLowToHigh, setIsCheckedPriceLowToHigh] = useState(false)
+  const [isCheckedPriceHighToLow, setIsCheckedPriceHighToLow] = useState(false)
+  const [isCheckedReviewsLowToHigh, setIsCheckedReviewsLowToHigh] = useState(false)
+  const [isCheckedReviewsHighToLow, setIsCheckedReviewsHighToLow] = useState(false)
   const [token, setToken] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -62,22 +66,25 @@ const AdvanceSearch = (props) => {
     setIsLoading(true)
     const formData = new FormData();
     if (searchTerm) formData.append('keyword', searchTerm);
-    if (categoryId) formData.append('category', categoryId);
-    if (subCategoryId) formData.append('subcategory', subCategoryId);
+    if (categoryId != 0) formData.append('category', categoryId);
+    if (subCategoryId != 0) formData.append('subcategory', subCategoryId);
     if (minPrice) formData.append('min_price', minPrice);
     if (maxPrice) formData.append('max_price', maxPrice);
-    if(reviewsLowToHigh !== ''){
+    if (language) formData.append('language[]', language);
+    console.log("reviewsLowToHigh======",reviewsLowToHigh);
+    if(isCheckedReviewsHighToLow || isCheckedReviewsLowToHigh){
       formData.append('rating', reviewsLowToHigh ? 'asc' : 'desc');
     }
-    if(priceLowToHigh !== ''){
+    if(isCheckedPriceHighToLow|| isCheckedPriceLowToHigh){
       formData.append('price', priceLowToHigh ? 'asc' : 'desc');
     }
 
     if (country) formData.append('country[]', country);
-
+    if (recommended) formData.append('recommended',recommended?1: 0)
     console.log('formData',formData)
 
     const response = await filter_record(props.token, formData);
+    console.log("filter response============",response)
     if (response.status === 1) {
       setSearchResult(response.data);
       setIsLoading(false)
@@ -91,6 +98,14 @@ const AdvanceSearch = (props) => {
    filterData()
   },[priceLowToHigh])
 
+  useEffect(()=>{
+    filterData()
+   },[reviewsLowToHigh])
+
+  useEffect(()=>{
+    filterData()
+  },[recommended])
+  
   const filterDataBySearch = async (search) => {
     setIsLoading(true)
     const formData = new FormData();
@@ -149,7 +164,6 @@ const AdvanceSearch = (props) => {
 
   const getCountries = async () => {
     const response = await get_countries(props.token);
-    console.log('countries', response)
     if (response.status === 1) {
       setCountries(response.data);
     }
@@ -168,7 +182,6 @@ const AdvanceSearch = (props) => {
     const formData = new FormData();
     formData.append('category', c_id);
     formData.append('subcategory', sub_c_id);
-    console.log('formData IN SEARCH', formData)
 
     const response = await filter_record(props.token, formData)
     if (response.status === 1) {
@@ -183,12 +196,12 @@ const AdvanceSearch = (props) => {
 
   const handleCountry = (value) => {
     let label = countries.find(cnt => cnt.cnt_id == value)
-    console.log("label===========",label)
-    setCountry(label.cnt_id);
+    setCountry(label.cnt_code);
   };
 
   const handleLanguage = (value) => {
     let label = languages.find(lan => lan.id == value)
+    console.log("label=========>",label)
     setLanguage(label.id);
   };
 
@@ -237,6 +250,8 @@ const AdvanceSearch = (props) => {
           <TouchableOpacity
             onPress={() => {
               setPriceLowToHigh(!priceLowToHigh);
+              setIsCheckedPriceLowToHigh(!isCheckedPriceLowToHigh);
+              setIsCheckedPriceHighToLow(false);
               setPriceHighToLow(false);
             }}
             style={styles.filterItemImageViewStyle}>
@@ -253,6 +268,8 @@ const AdvanceSearch = (props) => {
           style={styles.filterItemRadioStyle}
           onPress={() => {
             setPriceLowToHigh(!priceLowToHigh);
+            setIsCheckedPriceLowToHigh(!isCheckedPriceLowToHigh);
+            setIsCheckedPriceHighToLow(false);
             setPriceHighToLow(false);
           }}
         >
@@ -273,6 +290,8 @@ const AdvanceSearch = (props) => {
           <TouchableOpacity
             onPress={() => {
               setPriceHighToLow(!priceHighToLow);
+              setIsCheckedPriceHighToLow(!isCheckedPriceHighToLow);
+              setIsCheckedPriceLowToHigh(false);
               setPriceLowToHigh(false);
               filterData()
             }}
@@ -290,6 +309,8 @@ const AdvanceSearch = (props) => {
           style={styles.filterItemRadioStyle}
           onPress={() => {
             setPriceHighToLow(!priceHighToLow);
+            setIsCheckedPriceHighToLow(!isCheckedPriceHighToLow);
+            setIsCheckedPriceLowToHigh(false);
             setPriceLowToHigh(false);
             filterData()
           }}
@@ -311,7 +332,10 @@ const AdvanceSearch = (props) => {
           <TouchableOpacity
             onPress={() => {
               setReviewsLowToHigh(!reviewsLowToHigh);
+              setIsCheckedReviewsLowToHigh(!isCheckedReviewsLowToHigh);
+              setIsCheckedReviewsHighToLow(false);
               setReviewsHighToLow(false);
+              filterData()
             }}
             style={styles.filterItemImageViewStyle}>
             <Image
@@ -327,7 +351,10 @@ const AdvanceSearch = (props) => {
           style={styles.filterItemRadioStyle}
           onPress={() => {
             setReviewsLowToHigh(!reviewsLowToHigh);
+            setIsCheckedReviewsLowToHigh(!isCheckedReviewsLowToHigh);
+            setIsCheckedReviewsHighToLow(false);
             setReviewsHighToLow(false);
+            filterData()
           }}
         >
           <Image
@@ -347,7 +374,10 @@ const AdvanceSearch = (props) => {
           <TouchableOpacity
             onPress={() => {
               setReviewsHighToLow(!reviewsHighToLow);
+              setIsCheckedReviewsHighToLow(!isCheckedReviewsHighToLow);
+              setIsCheckedReviewsLowToHigh(false);
               setReviewsLowToHigh(false);
+              filterData()
             }}
             style={styles.filterItemImageViewStyle}>
             <Image
@@ -363,7 +393,10 @@ const AdvanceSearch = (props) => {
           style={styles.filterItemRadioStyle}
           onPress={() => {
             setReviewsHighToLow(!reviewsHighToLow);
+            setIsCheckedReviewsHighToLow(!isCheckedReviewsHighToLow);
+            setIsCheckedReviewsLowToHigh(false);
             setReviewsLowToHigh(false);
+            filterData()
           }}
         >
           <Image
@@ -427,14 +460,15 @@ const AdvanceSearch = (props) => {
           }
         </View>
         {/* category */}
-        {console.log('subcatogoryId=======',subCategoryId)}
+        
         <View style={styles.textContent}>
           <View style={styles.PickerContentStyle}>
             <Picker
               style={styles.PickerStyle}
               selectedValue={categoryId}
               onValueChange={text =>
-                handleCategory(text)
+                {handleCategory(text);
+                filterData();}
               }
             > 
               <Picker.Item key={0} label='Category' value={0} />
@@ -455,7 +489,7 @@ const AdvanceSearch = (props) => {
             <Picker
               style={styles.PickerStyle}
               selectedValue={subCategoryId}
-              onValueChange={text => handleSubCategory(text)}
+              onValueChange={text => {handleSubCategory(text); filterData();}}
             >
               <Picker.Item key={0} label='Sub Category' value={0} />
               {subCategories && subCategories.map((item, index) => (
@@ -490,7 +524,7 @@ const AdvanceSearch = (props) => {
             <Picker
               style={styles.PickerStyle}
               selectedValue={country}
-              onValueChange={text => handleCountry(text)}
+              onValueChange={text => {handleCountry(text);}}
             >
               <Picker.Item key={0} label='Country' value='' />
               {countries && countries.map((item, index) => (
@@ -510,7 +544,7 @@ const AdvanceSearch = (props) => {
             <Picker
               style={styles.PickerStyle}
               selectedValue={language}
-              onValueChange={text => handleLanguage(text)}
+              onValueChange={text => {handleLanguage(text)}}
             >
               <Picker.Item key={0} label='Language' value='' />
               {languages && languages.map((item, index) => (
@@ -532,7 +566,7 @@ const AdvanceSearch = (props) => {
               placeholderTextColor="#748F9E"
               value={minPrice}
               style={[styles.textInputStyles, { flex: 0.5 }]}
-              onChangeText={text => setMinPrice(text)}
+              onChangeText={text => {setMinPrice(text)}}
             />
             {minPrice !== ''&&
             <TouchableOpacity onPress={() => setMinPrice('')} style={styles.textClose}>
@@ -544,7 +578,7 @@ const AdvanceSearch = (props) => {
             <TextInput
               placeholder="Max Price"
               placeholderTextColor="#748F9E"
-              onChangeText={text => setMaxPrice(text)}
+              onChangeText={text => {setMaxPrice(text)}}
               value={maxPrice}
               style={[
                 styles.textInputStyles,
@@ -562,7 +596,7 @@ const AdvanceSearch = (props) => {
         <View style={styles.onlineTalent}>
           <TouchableOpacity
             style={styles.filterItemRadioStyle}
-            onPress={() => setOnlineSeller(!onlineSeller)}
+            onPress={() => {setOnlineSeller(!onlineSeller)}}
           >
             <Image
               style={styles.filterItemImageStyle}
@@ -598,7 +632,7 @@ const AdvanceSearch = (props) => {
               <FlatList
                 data={searchResult}
                 renderItem={({ item }) => (
-                  <RootCardWIthBigImage item={item} navigation={props.navigation} socket={props.screenProps}/>
+                  <RootCardWIthBigImage item={item} navigation={props.navigation} socket={global.socket}/>
                 )}
                 keyExtractor={(item, index) => index.toString()}
               />

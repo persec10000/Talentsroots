@@ -18,10 +18,11 @@ import { connect } from 'react-redux';
 const Withdraw = (props) => {
 
   const [email, setemail] = useState(props.profileData.email ? props.profileData.email : '')
-  const [amount, setAmount] = useState('')
-  const [payPal, setPayPal] = useState(false)
-  const [payoneer, setPayoneer] = useState(false)
-  const [cashu, setCashu] = useState(false)
+  const [amount, setAmount] = useState('');
+  const [payPal, setPayPal] = useState(false);
+  const [payoneer, setPayoneer] = useState(false);
+  const [cashu, setCashu] = useState(false);
+  const [editable, setEditable] = useState(props.profileData.email ? false: true);
   const country = props.profileData.country
   useEffect(() => {
     console.log("profileData==========",props.profileData)
@@ -31,6 +32,7 @@ const Withdraw = (props) => {
     if (payPal){
       setCashu(false);
       setPayoneer(false);
+      setEditable(false);
     }
   }, [payPal])
 
@@ -38,6 +40,7 @@ const Withdraw = (props) => {
     if (cashu){
       setPayPal(false);
       setPayoneer(false);
+      setEditable(true);
     }
   }, [cashu])
 
@@ -45,6 +48,7 @@ const Withdraw = (props) => {
     if (payoneer){
       setCashu(false);
       setPayPal(false);
+      setEditable(true);
     }
   }, [payoneer])
 
@@ -52,8 +56,6 @@ const Withdraw = (props) => {
     if(email == ''){
       Alert.alert("Please enter Email Address")
 
-    }else if(amount < 15){
-      Alert.alert("The amount must be higher than $15")
     }else{
       let gateway;
       if (payPal){
@@ -118,8 +120,9 @@ const Withdraw = (props) => {
       }
       <TextInput
         style={styles.textInput}
-        placeholder={email}
-        value={email}
+        placeholder={payoneer?'Payoneer Email':cashu?'CASHU Email/Username/Account number':email}
+        value={(payoneer || cashu)?null:email}
+        editable={editable}
         onChangeText={(text) => { setemail(text) }}
       />
       <TextInput

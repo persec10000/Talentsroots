@@ -18,6 +18,7 @@ import { connect } from "react-redux";
 import {
   saveRootDetailsData
 } from '../../actions/actions';
+import Icon from 'react-native-vector-icons/AntDesign'
 import styles from './index.style';
 
 const options = {
@@ -41,6 +42,9 @@ const Details = (props) => {
   const [video1,setVideo1] = useState('');
   const [video2,setVideo2] = useState('');
   const [video3,setVideo3] = useState('');
+  const [video4,setVideo4] = useState('');
+  const [video5,setVideo5] = useState('');
+  const [video6,setVideo6] = useState('');
   const [lengthOfDescription,setLengthOfDescription] = useState(0);
   const [addNewVideoCount,setAddNewVideoCount] = useState(0);
 
@@ -65,6 +69,9 @@ const Details = (props) => {
         setVideo1(props.root.videos[0] ? props.root.videos[0] : '');
         setVideo2(props.root.videos[1] ? props.root.videos[1] : '');
         setVideo3(props.root.videos[2] ? props.root.videos[2] : '');
+        setVideo3(props.root.videos[3] ? props.root.videos[3] : '');
+        setVideo3(props.root.videos[4] ? props.root.videos[4] : '');
+        setVideo3(props.root.videos[5] ? props.root.videos[5] : '');
       }
       
     }
@@ -136,11 +143,15 @@ const Details = (props) => {
 
     //Details page data 
     formData.append('r_desc',description);
-    formData.append('r_instruction_to_buyer',instruction);
-    console.log('tags.tagsArray',tags.tagsArray)
+    formData.append('r_instruction_to_buyer',instruction); 
+    props.root.videos.map(item=>{
+      if (item != ""){
+        video.push(item);
+      }
+    })
+    formData.append('r_video_link[]',video.join());
     let allTags = tags.tagsArray;
-    console.log('allTags',allTags)
-    formData.append('r_tags',allTags);
+    formData.append('r_tags',props.root.tags.tagsArray.join());
 
     //files and videos remaing 
     // formData.append('r_video_link[]',[video1,video2,video3])
@@ -230,7 +241,7 @@ const Details = (props) => {
       tags:tags,
       instruction,
       image,
-      videos:[video1,video2,video3]
+      videos:[video1,video2,video3,video4,video5,video6]
     }
 
     props.dispatch(saveRootDetailsData(rootData))
@@ -276,7 +287,7 @@ const Details = (props) => {
         {/*Tags*/}
         <TagInput 
           updateState={(newTags) => setTags(newTags)} 
-          placeholder="Search tags" 
+          placeholder="Search tags: Separate by space" 
           labelStyle={{color: '#fff'}}
           inputStyle={styles.inputSmall}
           tagStyle={styles.tag}
@@ -290,10 +301,15 @@ const Details = (props) => {
           <Text>(only image file will be visible at first position)</Text>
           <TouchableOpacity style={styles.inputDash} onPress={pickImage}>
             {image ?
-            <Image 
-            style={styles.image}
-            source={image}
-            />
+            <View style={styles.imageView}>
+              <Image 
+              style={styles.image}
+              source={image}
+              />
+              <TouchableOpacity onPress={() => setImage(null)} style={{position:'absolute', top:5, right:5}}>
+                <Icon name='delete' color='#748f9e' size={30}/>
+              </TouchableOpacity>
+            </View>
             :
             <Text style={{color: '#10A2EF'}}>Drag and Drop Images</Text>
             }
@@ -328,11 +344,41 @@ const Details = (props) => {
             />
             : null
           }
+           {
+            addNewVideoCount >= 3 ?
+            <TextInput 
+              onChangeText={value => setVideo4(value)}
+              value={video4}
+              placeholder="Video link (YouTube/Vimeo)" 
+              style={styles.inputSmall} 
+            />
+            : null
+          }
+           {
+            addNewVideoCount >= 4 ?
+            <TextInput 
+              onChangeText={value => setVideo5(value)}
+              value={video5}
+              placeholder="Video link (YouTube/Vimeo)" 
+              style={styles.inputSmall} 
+            />
+            : null
+          }
+          {
+            addNewVideoCount >= 5 ?
+            <TextInput 
+              onChangeText={value => setVideo6(value)}
+              value={video6}
+              placeholder="Video link (YouTube/Vimeo)" 
+              style={styles.inputSmall} 
+            />
+            : null
+          }
         </View>
         {/* + Add video */}
         <>
         {
-          addNewVideoCount < 2 ?
+          addNewVideoCount < 5 ?
           <Text
             onPress={() => setAddNewVideoCount(addNewVideoCount + 1)}
             style={styles.addNewVideoText}>

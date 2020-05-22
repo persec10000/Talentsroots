@@ -37,7 +37,7 @@ export const orderSuccess = (
     })
   }).then((response) => response.json())
     .then((responseJson) => {
-      console.log("=====>", responseJson)
+      console.log("=====>>>>>>>>", responseJson)
       return responseJson;
     })
     .catch((error) => {
@@ -68,6 +68,77 @@ export const orderCancel = (token, seller_id, buyer_id, message, orderID) => {
     .catch((error) => {
       console.error("in catch...",error);
     });
+}
+
+export const orderActionCancel = (token, o_id, type) => {
+  return fetch(config.cancelActionOrder, {
+    method: 'POST',
+    headers: {
+      'api-key': 'B3vWg8qq4k2!9qePMh*U&Cu&tbPJ$Fywnk^5LYFUprx9BAetDk5',
+      'Content-Type': 'application/json',
+      'auth-token': token
+    },
+    body: JSON.stringify({
+      'order_id': o_id,
+      'type':type
+    })
+  }).then((response) => response.json())
+    .then((responseJson) => {
+      console.log("=====>", responseJson)
+      return responseJson;
+    })
+    .catch((error) => {
+      console.error("in catch...",error);
+    });
+}
+
+export const orderAccept = (token, orderID) => {
+  return fetch(config.acceptOrder, {
+    method: 'POST',
+    headers: {
+      'api-key': 'B3vWg8qq4k2!9qePMh*U&Cu&tbPJ$Fywnk^5LYFUprx9BAetDk5',
+      'Content-Type': 'application/json',
+      'auth-token': token
+    },
+    body: JSON.stringify({
+      'order_id': orderID
+    })
+  }).then((response) => response.json())
+    .then((responseJson) => {
+      console.log("=====>", responseJson)
+      return responseJson;
+    })
+    .catch((error) => {
+      console.error("in catch...",error);
+    });
+}
+
+export const submitRating = (token, s_id, b_id, reviewMeg, o_id, comR, quaR, recR) => {
+  console.log(token, s_id, b_id, reviewMeg, o_id, comR, quaR, recR)
+  const formData = new FormData();
+  formData.append('message', reviewMeg);
+  formData.append('sellerID', s_id);
+  formData.append('buyerID', b_id);
+  formData.append('orderid', o_id);
+  formData.append('communication_level', comR);
+  formData.append('quality_of_delivered_work', quaR);
+  formData.append('recommended_for_others', recR);
+  return fetch(config.submitRating, {
+    method: 'POST',
+    headers: {
+      'api-key': 'B3vWg8qq4k2!9qePMh*U&Cu&tbPJ$Fywnk^5LYFUprx9BAetDk5',
+      'Content-Type': 'multipart/form-data',
+      'auth-token': token
+    },
+    body: formData
+  }).then((response) => response.json())
+  .then((responseJson) => {
+    console.log("=====>", responseJson)
+    return responseJson;
+  })
+  .catch((error) => {
+    console.error("in catch...",error);
+  });
 }
 
 export const extendDeliverTimeService = (token, message, days, s_id, b_id, o_id) => {
@@ -130,18 +201,19 @@ export const addCustomExtraService = (token, message, days, s_id, b_id, o_id, pr
 
 
 export const deliverOrderService = (token, message, o_id, s_id, b_id, waterMark, fileOptions) => {
-
   const formData = new FormData();
   formData.append('message', message);
   formData.append('orderid', o_id);
   formData.append('sellerID', s_id);
   formData.append('buyerID', b_id);
   formData.append('watermark', waterMark);
-  formData.append('files[]', {
-    'uri': fileOptions.uri,
-    'type': fileOptions.type,
-    'name': fileOptions.fileName
-  });
+  fileOptions.forEach((item, i) => {
+    formData.append('files[]', {
+      'uri': item.uri,
+      'type': item.type,
+      'name': item.fileName
+    });
+  })
 
   return fetch(config.deliverOrder, {
     method: 'POST',
@@ -183,6 +255,7 @@ export const orderHistory = (token, o_id) => {
 }
 
 export const cancelExtendService = (token, o_id) => {
+  console.log(token, o_id)
   const formData = new FormData();
   
   formData.append('orderid', o_id);

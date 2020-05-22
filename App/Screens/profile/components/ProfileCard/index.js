@@ -54,8 +54,7 @@ const ProfileCard = props => {
     const [online, setOnline] = useState( data.is_online == 1 ? true : false)
 
     useEffect(() => {
-        console.log("????????????????", props.data.id)
-        const socket = props.socket
+        const socket = global.socket
         socket.on('user_message', (data) => {
           const userMessage = JSON.parse(data)
           if (userMessage.type == "user_login") {
@@ -72,8 +71,6 @@ const ProfileCard = props => {
         })
       }, [])
 
-
-    console.log('profile data',data)
     const getContactView = () => {
         return (
             <View style={styles.card}>

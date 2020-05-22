@@ -11,7 +11,7 @@ export const LoginWithFacebook = (facebook_id, name, email, first_name, last_nam
     console.log(last_name)
     return{
         type:types.FB_LOGIN_REQUEST,
-        payload:{facebook_id, name, email, first_name, last_name, device_id}
+        payload:{facebook_id, name, email, first_name, last_name, device_id, tz}
     }
 }
 

@@ -32,14 +32,13 @@ export default StyleSheet.create({
         borderRadius: 5 
     }, 
     CardTitleStyle : {
-        fontSize : 13,
-        color : 'lightgray',
-        fontWeight : 'bold',
+        fontSize : 18,
+        color : '#748f9e',
         paddingLeft : 15,
     },
     PriceStyle : {
-        fontSize : 14,
-        color : 'lightgray',
+        fontSize : 18,
+        color : '#2ec09c',
         fontWeight : 'bold',
         textAlign:'right',
         paddingRight:15
@@ -60,17 +59,17 @@ export default StyleSheet.create({
         borderRadius: 80 / 2 
     },
     profileLeftViewNameStyle : {
-        fontWeight: '500', 
+        fontWeight: '700', 
         fontSize: 15 ,
         paddingLeft : 5,
-        color : 'gray'
+        color : '#748f9e'
     },
     orderIdTextStyle : {
         fontWeight: '700', 
         fontSize: 14 ,
         paddingLeft : 5,
         paddingBottom:5,
-        color : 'lightgray'
+        color : '#748f9e'
     },
     tableItem : { 
         display : 'flex' ,  
@@ -132,13 +131,14 @@ export default StyleSheet.create({
         marginHorizontal: 10
     },
     securityImageStyle : { 
-        width : width - width / 3.5 , 
+        // width : width - width / 4 , 
+        width: 50,
         alignSelf : 'center',
-        height: 70
+        height: 50
     },
     cardView: {
-        width: Dimensions.get('window').width / 1.2,
-        borderColor: '#748F9E',
+        width: Dimensions.get('window').width / 1.1,
+        borderColor: '#ebedf2',
         borderWidth: 1,
         borderRadius: 15,
         marginVertical: 10,
@@ -147,9 +147,13 @@ export default StyleSheet.create({
         justifyContent: 'center'
     },
     totalText:{
-        fontSize : 17,
-        color : 'lightgray',
+        fontSize : 20,
+        color : '#2ec09c',
         fontWeight : '700',
         textAlign:'right',
+    },
+    textClose : {
+        justifyContent:'center',
+        marginLeft: 3
     }
 });

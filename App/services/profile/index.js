@@ -139,7 +139,7 @@ export const user_profile_service = request => {
     });
 };
 
-export const review_detail = (token, id) => {
+export const review_detail = (token, id, offsetNum) => {
   return fetch(config.reviewDetail, {
     method: 'POST',
     headers: {
@@ -149,6 +149,7 @@ export const review_detail = (token, id) => {
     },
     body: JSON.stringify({
       root_id: id,
+      offset: offsetNum
     }),
   })
     .then(response => {

@@ -7,11 +7,10 @@ import styles from './index.style';
 RootCardWIthBigImage = props => {
 
   const {item} = props;
-  console.log("===>>><<<===",item)
   const [online, setOnline] = useState(item.is_online == 1 ? true : false)
 
   useEffect(() => {
-    const socket = props.socket
+    const socket = global.socket
     socket.on('user_message', (data) => {
       const userMessage = JSON.parse(data)
       if (userMessage.type == "user_login") {
@@ -26,7 +25,6 @@ RootCardWIthBigImage = props => {
     })
   }, [])
 
-  console.log('root item is ',item)
   return (
     <TouchableOpacity 
     onPress={() => props.navigation.navigate('RootPage', {

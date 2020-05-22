@@ -6,7 +6,6 @@ import {
 import {Provider} from 'react-redux'
 import 'react-native-gesture-handler'
 import {store} from './App/reducers'
-import SocketIOClient from 'socket.io-client/dist/socket.io';
 import { MenuProvider } from 'react-native-popup-menu';
 import firebase  from 'react-native-firebase';
 import { connect } from 'react-redux';
@@ -15,30 +14,10 @@ const App = (props) => {
   useEffect(() => {
     this.checkPermission();
     this.messageListener();
-    async function fetchData() {
-      await AsyncStorage.getItem("FCM.BG_MESSAGE")
-    }
-    fetchData()   
-    .then(jsonData => {
-        const data = jsonData ? JSON.parse(jsonData) : false;
-        console.log("dataaaaaaaaaaaaaaaaaa",data);
-        // then do navigation, or whatever you want to the data.
-    }).catch(e => console.log(e));
     return () => {
       this.notificationOpenedListener();
     }
   }, [])
-    let socket = SocketIOClient('https://socket.talentsroot.com?user_id=' + props.id);
-    // let socket = SocketIOClient('https://socket.tribital.ml?user_id=' + props.id);
-    global.socket = socket;
-    socket.on('disconnect', (res, err) => console.log("result======>",res, err))
-  if (props.id){
-    socket.on('connect', () => {
-        console.log('connected in app at socket.tribital.ml?user_id=' + props.id)
-    });
-    socket.on('connect_error', (err) => { console.log("SOCKET CONNECTION ERR ----", err) })
-  } 
-
   checkPermission = async() => {
     const enabled = await firebase.messaging().hasPermission();
     if (enabled) {
@@ -78,13 +57,11 @@ const App = (props) => {
  
   messageListener = async () => {
     this.notificationListener = firebase.notifications().onNotification((notification) => {
-        console.log("notification====================",notification)
         const { title, body } = notification;
         this.showAlert(title, body);
     });
   
     this.notificationOpenedListener = firebase.notifications().onNotificationOpened((notificationOpen) => {
-      console.log("notification2=========================")  
       this.showAlert('Alert', "Alert")
       const { title, body } = notificationOpen.notification;
         this.showAlert(title, body);
@@ -116,7 +93,7 @@ const App = (props) => {
   return (
     
       <MenuProvider>        
-        <AppStarter screenProps={socket}/>
+        <AppStarter/>
       </MenuProvider>
     
   );

@@ -1,4 +1,4 @@
-import React, {Fragment} from 'react';
+import React, {Fragment, useEffect} from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -19,21 +19,23 @@ import {connect} from 'react-redux';
 const Review = (props) => {
 
     const {root} = props;
-
+    useEffect(() => {
+      
+    }, [])
     const handlePostRoot = () => {
-      console.log("propssssssssssssssssss",props.root)
       const formData = new FormData();
 
       //data from title screen
       formData.append('r_title',props.root.rootTitle);
       formData.append('r_category_id',props.root.category); 
       formData.append('r_subcategory_ids',props.root.subCategory);
-      // let image = {
-      //   uri: props.root.image,
-      //   type: 'image/jpeg',
-      //   name: 'photo.jpg',
-      // }
-      // formData.append('r_image',props.root.image);
+      let image = {
+        uri: props.root.image.uri,
+        type: 'image/jpeg',
+        name: 'photo.jpg',
+      }
+      console.log("image=========",image)
+      formData.append('r_root_file[]',image);
   
       //data from price screen
       if(!props.root.isPriceFlexible){
@@ -66,34 +68,46 @@ const Review = (props) => {
         //extra fast delivery
         formData.append('r_extra[fast_delivery][price]',props.root.fastDeliveryPrice);
         formData.append('r_extra[fast_delivery][max_days]',props.root.fastDeliveryDays);
+        formData.append('r_extra[fast_delivery][status]', 'checked');
+        
       }
       if(props.root.isRevision){
         //revision
         formData.append('r_extra[revision][price]',props.root.revisionPrice);
         formData.append('r_extra[revision][max_days]',props.root.revisionDays);
+        formData.append('r_extra[revision][status]','checked');
       }
       if(props.root.isExtra1){
         //extra1
         formData.append('r_extra[extra1][description]',props.root.extra1Description);
         formData.append('r_extra[extra1][price]',props.root.extra1Price);
         formData.append('r_extra[extra1][max_days]',props.root.extra1Days);
+        formData.append('r_extra[extra1][status]','checked');
       }
       if(props.root.isExtra2){
         //extra2
         formData.append('r_extra[extra2][description]',props.root.extra2Description);
         formData.append('r_extra[extra2][price]',props.root.extra2Price);
         formData.append('r_extra[extra2][max_days]',props.root.extra2Days);
+        formData.append('r_extra[extra2][status]','checked');
       }
       if(props.root.isExtra3){
         //extra3
         formData.append('r_extra[extra3][description]',props.root.extra3Description);
         formData.append('r_extra[extra3][price]',props.root.extra3Price);
         formData.append('r_extra[extra3][max_days]',props.root.extra3Days);
+        formData.append('r_extra[extra3][status]','checked');
       }
       //data from detail screen
       formData.append('r_desc',props.root.description);
       formData.append('r_instruction_to_buyer',props.root.instruction);
-     
+      let video = [];
+      props.root.videos.map(item=>{
+        if (item != ""){
+          video.push(item);
+        }
+      })
+      formData.append('r_video_link[]',video.join());
       if(props.root.rootId){
         formData.append('r_id',props.root.rootId);
       } 
@@ -101,10 +115,11 @@ const Review = (props) => {
      
       // let tags = props.root.tags.tagsArray;
       // console.log(tags)
-      // formData.append('r_tags',tags.join());
+      formData.append('r_tags',props.root.tags.tagsArray.join());
 
       //post root
       formData.append('r_type',0);// 0 : post 
+      console.log("formdata=============",formData)
       props.handlePostRoot(formData)
     }
 

@@ -24,7 +24,7 @@ export default class Player extends React.Component{
     }
 
     async componentDidMount (){
-        
+        console.log("ttttttttttttttttt", this.props.url)
         this.sound = new Sound(this.props.url, Sound.MAIN_BUNDLE, (error) => {
             if (error) {
                 console.log('failed to load the sound', error);
