@@ -13,7 +13,7 @@
     "@react-native-community/datetimepicker": "^2.2.2",
     "@react-native-community/google-signin": "^4.0.0",
     "@react-native-community/slider": "^2.0.0",
-    "moment": "^2.24.0",
+    "moment": "^2.29.2",
     "native-base": "^2.13.8",
     "react": "16.8.6",
     "react-native": "0.60.5",
